@@ -18,6 +18,7 @@ class Settings:
     maxkb_password: str
     maxkb_workspace_id: str
     maxkb_knowledge_name: str
+    api_key: str = ""
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -50,6 +51,7 @@ class Settings:
                 "MAXKB_KNOWLEDGE_NAME",
                 "南江至东岭高速公路改扩建工程 JD-A1 监理审查知识库",
             ),
+            api_key=os.getenv("PREFLIGHT_API_KEY", ""),
         )
 
     def is_allowed_source(self, source: Path) -> bool:

@@ -14,6 +14,7 @@ Worker 使用独立 Python 3.11 依赖，不依赖 MaxKB Django 运行环境。�
 
 ```powershell
 $env:PREFLIGHT_ALLOWED_SOURCE_ROOTS = "D:\AI\知识库"
+$env:PREFLIGHT_API_KEY = "<Worker API Key>"
 $env:PADDLEOCR_TOKEN = "<PaddleOCR Token>"
 $env:MAXKB_PASSWORD = "<MaxKB Password>"
 
@@ -24,8 +25,8 @@ uv run --project services\preflight-ocr-worker `
   --port 8091
 ```
 
-`PADDLEOCR_TOKEN` 或 `MAXKB_PASSWORD` 缺失时，服务仍可启动，但 `/health` 返回 `degraded`，相关 provider
-显示为未配置。
+`PREFLIGHT_API_KEY`、`PADDLEOCR_TOKEN` 或 `MAXKB_PASSWORD` 缺失时，服务仍可启动，但 `/health` 返回
+`degraded`。`PREFLIGHT_API_KEY` 缺失时业务 API 返回 `503`。
 
 健康检查：
 
@@ -46,6 +47,7 @@ http://127.0.0.1:8091/docs
 | `PREFLIGHT_PROJECT_ROOT` | 自动解析当前 MaxKB 仓库根目录 |
 | `PREFLIGHT_STATE_FILE` | `var/preflight-ocr-worker/state.json` |
 | `PREFLIGHT_ALLOWED_SOURCE_ROOTS` | 默认只允许项目根目录，多个路径用系统路径分隔符 |
+| `PREFLIGHT_API_KEY` | 必填，前置平台调用 Worker 的 Bearer 凭据 |
 | `PADDLEOCR_TOKEN` | 必填，PaddleOCR-VL token |
 | `PADDLEOCR_JOB_URL` | PaddleOCR-VL jobs endpoint |
 | `PADDLEOCR_MODEL` | 默认 `PaddleOCR-VL-1.6` |
@@ -54,6 +56,28 @@ http://127.0.0.1:8091/docs
 | `MAXKB_PASSWORD` | 必填，MaxKB 管理员密码，无默认值 |
 | `MAXKB_WORKSPACE_ID` | 默认 `default` |
 | `MAXKB_KNOWLEDGE_NAME` | 默认试点知识库名称 |
+
+## 平台调用约束
+
+除 `/health` 外，业务 API 必须携带：
+
+```http
+Authorization: Bearer <PREFLIGHT_API_KEY>
+```
+
+创建 OCR 任务还必须携带：
+
+```http
+Idempotency-Key: <平台稳定任务键>
+X-Correlation-ID: <平台审计关联标识>
+```
+
+`X-Correlation-ID` 可省略，Worker 会自动生成。`Idempotency-Key` 不可省略：
+
+- 同 key、同请求：返回已有任务，不重复启动 OCR。
+- 同 key、不同请求：返回 `409`。
+- Worker 鉴权未配置：返回 `503`。
+- Bearer 凭据错误：返回 `401`。
 
 ## 测试
 

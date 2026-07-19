@@ -114,11 +114,20 @@
 - 安全：本地文件限制在 allowed roots；凭据只从环境变量读取；API 不返回内部解析路径。
 - 验证：Python 3.11 下 4 个公开接口回归通过，Ruff 和语法检查通过。
 
+## 本轮完成：前置平台联调加固
+
+- Worker 业务 API 已使用 `PREFLIGHT_API_KEY` Bearer 鉴权。
+- OCR 创建接口已强制要求 `Idempotency-Key`，避免平台重试产生重复 OCR 和重复入库。
+- 支持平台 `X-Correlation-ID` 透传，用于后续审计和故障定位。
+- `/health` 已输出 Worker 鉴权、capabilities、PaddleOCR 和 MaxKB readiness。
+- 公开 HTTP 接口回归由 4 项扩展到 11 项。
+
 ## 下一阶段推荐任务组
 
 1. 前置平台联调
-   - 使用真实平台请求字段调用 Worker，确认项目、合同段、队伍、审查任务和原始资料对象映射。
-   - 输出一份可复现的联调请求、状态查询和错误处理记录。
+   - 使用真实平台请求字段和服务端 Bearer 凭据调用 Worker。
+   - 验证幂等重试、correlationId、项目/合同段/队伍/审查任务映射和错误处理。
+   - 输出一份可复现的联调请求、状态查询、provider refs 和故障记录。
 
 2. 两类真实证照回归
    - 分别选取安全生产许可证、人员证书真实扫描件。

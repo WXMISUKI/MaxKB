@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -13,7 +15,7 @@ from .schemas import (
     PostprocessRequest,
     RetrievalCheckRequest,
 )
-from .store import JsonStateStore
+from .store import IdempotencyConflict, JsonStateStore
 
 
 class IngestionService:
@@ -22,12 +24,33 @@ class IngestionService:
         self.store = store
         self.adapters = adapters
 
-    def create(self, request: CreateIngestionRequest) -> dict[str, Any]:
+    def create(
+        self,
+        request: CreateIngestionRequest,
+        idempotency_key: str,
+        correlation_id: str | None = None,
+    ) -> tuple[dict[str, Any], bool]:
+        request_fingerprint = hashlib.sha256(
+            json.dumps(
+                request.model_dump(mode="json"),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+        existing = self.store.get_by_idempotency_key(idempotency_key)
+        if existing:
+            if existing.get("request_fingerprint") != request_fingerprint:
+                raise IdempotencyConflict("Idempotency key was already used for a different request.")
+            return existing, False
+
         source = self._validated_source(request)
         now = self._now()
         record = {
             "ingestion_id": f"ocring_{uuid4().hex}",
-            "correlation_id": f"corr_{uuid4().hex}",
+            "correlation_id": correlation_id or f"corr_{uuid4().hex}",
+            "idempotency_key": idempotency_key,
+            "request_fingerprint": request_fingerprint,
             "status": "registered",
             "metadata": request.metadata.model_dump(),
             "source": request.source.model_dump(),
@@ -42,7 +65,7 @@ class IngestionService:
             "created_at": now,
             "updated_at": now,
         }
-        return self.store.create(record)
+        return self.store.create_idempotent(record)
 
     def get(self, ingestion_id: str) -> dict[str, Any] | None:
         return self.store.get(ingestion_id)

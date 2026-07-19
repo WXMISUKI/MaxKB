@@ -54,3 +54,16 @@
 - [x] E7 使用公开 HTTP 接口完成成功链路、越权路径、健康降级和失败持久化回归。
 - [x] E8 在 Python 3.11 下完成测试、语法和 Ruff 验证。
 - [x] E9 归档 Worker 启动方式、环境变量、API 合同和原型边界。
+
+## Task Group F — Platform Integration Hardening
+
+- [x] F1 新增平台联调加固 Spec。
+- [x] F2 使用 `PREFLIGHT_API_KEY` 保护全部业务 API，保留匿名健康检查。
+- [x] F3 未配置 Worker 鉴权时返回 `503`，无效 Bearer 凭据返回 `401`。
+- [x] F4 创建 OCR 任务强制使用 `Idempotency-Key`。
+- [x] F5 同 key、同请求返回已有任务且不重复执行 OCR。
+- [x] F6 同 key、不同请求返回 `409`，原任务保持不变。
+- [x] F7 支持 `X-Correlation-ID` 透传，缺失时由 Worker 生成。
+- [x] F8 健康检查输出鉴权配置、Worker capabilities 和 provider readiness。
+- [x] F9 归档平台调用请求头、错误语义和幂等规则。
+- [x] F10 使用公开 HTTP 接口完成 11 项 Worker 回归。

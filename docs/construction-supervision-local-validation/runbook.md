@@ -277,6 +277,7 @@ python docs\construction-supervision-local-validation\scripts\postprocess_ocr_do
 
 ```powershell
 $env:PREFLIGHT_ALLOWED_SOURCE_ROOTS = "D:\AI\知识库"
+$env:PREFLIGHT_API_KEY = "<Worker API Key>"
 $env:PADDLEOCR_TOKEN = "<PaddleOCR Token>"
 $env:MAXKB_PASSWORD = "<MaxKB Password>"
 
@@ -303,9 +304,21 @@ uv run --project services\preflight-ocr-worker `
 | `POST` | `/api/preflight/ocr-ingestions/{ingestionId}/ingest-to-knowledge` | 人工确认后上传 MaxKB |
 | `POST` | `/api/preflight/ocr-ingestions/{ingestionId}/retrieval-check` | 执行精确字段命中验收 |
 
-`PADDLEOCR_TOKEN` 或 `MAXKB_PASSWORD` 未设置时，服务仍可启动用于检查，但 `/health` 返回 `degraded`，
-对应 provider 操作会失败并记录安全错误摘要。Worker 不会在 API 响应中返回 provider token、密码或内部
-`resolved_source` 路径。
+`PREFLIGHT_API_KEY`、`PADDLEOCR_TOKEN` 或 `MAXKB_PASSWORD` 未设置时，服务仍可启动用于检查，但
+`/health` 返回 `degraded`。Worker 鉴权未配置时业务 API 返回 `503`；凭据错误返回 `401`。
+
+平台调用业务 API：
+
+```powershell
+$headers = @{
+  Authorization = "Bearer $env:PREFLIGHT_API_KEY"
+  "Idempotency-Key" = "opening-condition:evidence-001:v1"
+  "X-Correlation-ID" = "review-task-opening-condition-lj01"
+}
+```
+
+创建任务时必须使用稳定 `Idempotency-Key`。同 key、同请求只返回已有任务；同 key、不同请求返回 `409`。
+Worker 不会在 API 响应中返回 provider token、密码、内部请求指纹或 `resolved_source` 路径。
 
 本地验证：
 

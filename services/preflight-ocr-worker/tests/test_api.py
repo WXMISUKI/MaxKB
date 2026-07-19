@@ -13,6 +13,7 @@ from preflight_ocr_worker.store import JsonStateStore
 class FakeAdapters:
     def __init__(self, root: Path) -> None:
         self.root = root
+        self.ocr_calls = 0
 
     def ocr_and_archive(
         self,
@@ -21,6 +22,7 @@ class FakeAdapters:
         optional_payload: dict[str, bool],
         on_submitted: Callable[[str], None],
     ) -> dict[str, Any]:
+        self.ocr_calls += 1
         on_submitted("job-test-001")
         markdown = self.root / "ocr.md"
         markdown.write_text("# 营业执照\n统一社会信用代码\n91310115515002x94", encoding="utf-8")
@@ -95,7 +97,12 @@ def settings_for(tmp_path: Path) -> Settings:
         maxkb_password="test-password",
         maxkb_workspace_id="default",
         maxkb_knowledge_name="test-knowledge",
+        api_key="test-worker-key",
     )
+
+
+def auth_headers(**values: str) -> dict[str, str]:
+    return {"Authorization": "Bearer test-worker-key", **values}
 
 
 def request_payload(source: Path) -> dict[str, Any]:
@@ -123,16 +130,22 @@ def test_full_ingestion_flow(tmp_path: Path) -> None:
     app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
     client = TestClient(app)
 
-    created = client.post("/api/preflight/ocr-ingestions", json=request_payload(source))
+    created = client.post(
+        "/api/preflight/ocr-ingestions",
+        json=request_payload(source),
+        headers=auth_headers(**{"Idempotency-Key": "full-ingestion-flow"}),
+    )
     assert created.status_code == 202
     record = created.json()
     assert record["status"] == "ready_for_ingest"
     assert "resolvedSource" not in record
+    assert "requestFingerprint" not in record
 
     ingestion_id = record["ingestionId"]
     ingested = client.post(
         f"/api/preflight/ocr-ingestions/{ingestion_id}/ingest-to-knowledge",
         json={"provider": "maxkb", "workspaceId": "default"},
+        headers=auth_headers(),
     )
     assert ingested.json()["status"] == "ingested"
 
@@ -142,6 +155,7 @@ def test_full_ingestion_flow(tmp_path: Path) -> None:
             "queries": ["统一社会信用代码 91310115515002x94"],
             "expectedDocumentName": "business-license-ingest.md",
         },
+        headers=auth_headers(),
     )
     assert checked.json()["status"] == "retrieval_checked"
     assert checked.json()["retrievalCheck"]["pass"] == 1
@@ -156,9 +170,139 @@ def test_rejects_source_outside_allowed_roots(tmp_path: Path) -> None:
     app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(allowed))
     client = TestClient(app)
 
-    response = client.post("/api/preflight/ocr-ingestions", json=request_payload(outside))
+    response = client.post(
+        "/api/preflight/ocr-ingestions",
+        json=request_payload(outside),
+        headers=auth_headers(**{"Idempotency-Key": "outside-source-test"}),
+    )
     assert response.status_code == 400
     assert "outside configured allowed roots" in response.json()["detail"]
+
+
+def test_business_api_rejects_missing_bearer(tmp_path: Path) -> None:
+    source = tmp_path / "license.pdf"
+    source.write_bytes(b"test")
+    settings = settings_for(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
+
+    response = TestClient(app).post(
+        "/api/preflight/ocr-ingestions",
+        json=request_payload(source),
+        headers={"Idempotency-Key": "missing-bearer-test"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_create_ingestion_is_idempotent(tmp_path: Path) -> None:
+    source = tmp_path / "license.pdf"
+    source.write_bytes(b"test")
+    settings = settings_for(tmp_path)
+    adapters = FakeAdapters(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), adapters)
+    client = TestClient(app)
+    headers = auth_headers(**{"Idempotency-Key": "evidence-test-v1"})
+
+    first = client.post("/api/preflight/ocr-ingestions", json=request_payload(source), headers=headers)
+    second = client.post("/api/preflight/ocr-ingestions", json=request_payload(source), headers=headers)
+
+    assert first.status_code == 202
+    assert second.status_code == 202
+    assert second.json()["ingestionId"] == first.json()["ingestionId"]
+    assert adapters.ocr_calls == 1
+
+
+def test_idempotent_retry_does_not_require_source_file_to_still_exist(tmp_path: Path) -> None:
+    source = tmp_path / "license.pdf"
+    source.write_bytes(b"test")
+    settings = settings_for(tmp_path)
+    adapters = FakeAdapters(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), adapters)
+    client = TestClient(app)
+    headers = auth_headers(**{"Idempotency-Key": "temporary-source-v1"})
+
+    first = client.post("/api/preflight/ocr-ingestions", json=request_payload(source), headers=headers)
+    source.unlink()
+    retried = client.post("/api/preflight/ocr-ingestions", json=request_payload(source), headers=headers)
+
+    assert first.status_code == 202
+    assert retried.status_code == 202
+    assert retried.json()["ingestionId"] == first.json()["ingestionId"]
+    assert adapters.ocr_calls == 1
+
+
+def test_idempotency_key_reuse_with_different_request_is_rejected(tmp_path: Path) -> None:
+    source = tmp_path / "license.pdf"
+    source.write_bytes(b"test")
+    settings = settings_for(tmp_path)
+    adapters = FakeAdapters(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), adapters)
+    client = TestClient(app)
+    headers = auth_headers(**{"Idempotency-Key": "evidence-conflict-v1"})
+    changed_payload = request_payload(source)
+    changed_payload["metadata"]["sourceObjectId"] = "evidence-other"
+
+    first = client.post("/api/preflight/ocr-ingestions", json=request_payload(source), headers=headers)
+    conflict = client.post("/api/preflight/ocr-ingestions", json=changed_payload, headers=headers)
+
+    assert first.status_code == 202
+    assert conflict.status_code == 409
+    assert conflict.json()["detail"] == "Idempotency key was already used for a different request."
+    assert adapters.ocr_calls == 1
+
+
+def test_platform_correlation_id_is_preserved(tmp_path: Path) -> None:
+    source = tmp_path / "license.pdf"
+    source.write_bytes(b"test")
+    settings = settings_for(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
+    client = TestClient(app)
+    headers = auth_headers(
+        **{
+            "Idempotency-Key": "correlation-test-v1",
+            "X-Correlation-ID": "platform-review-task-001",
+        }
+    )
+
+    created = client.post("/api/preflight/ocr-ingestions", json=request_payload(source), headers=headers)
+    persisted = client.get(
+        f"/api/preflight/ocr-ingestions/{created.json()['ingestionId']}",
+        headers=auth_headers(),
+    )
+
+    assert created.json()["correlationId"] == "platform-review-task-001"
+    assert persisted.json()["correlationId"] == "platform-review-task-001"
+
+
+def test_health_reports_worker_auth_and_capabilities(tmp_path: Path) -> None:
+    settings = settings_for(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
+
+    response = TestClient(app).get("/health")
+
+    assert response.status_code == 200
+    assert response.json()["ready"] is True
+    assert response.json()["authentication"] == {"configured": True, "scheme": "bearer"}
+    assert response.json()["capabilities"]["idempotentSubmission"] is True
+    assert response.json()["capabilities"]["correlationPropagation"] is True
+    assert response.json()["providers"]["paddleocr_vl"]["status"] == "ready"
+    assert response.json()["providers"]["maxkb"]["status"] == "ready"
+
+
+def test_business_api_is_unavailable_when_worker_auth_is_not_configured(tmp_path: Path) -> None:
+    source = tmp_path / "license.pdf"
+    source.write_bytes(b"test")
+    settings = settings_for(tmp_path)
+    object.__setattr__(settings, "api_key", "")
+    app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
+
+    response = TestClient(app).post(
+        "/api/preflight/ocr-ingestions",
+        json=request_payload(source),
+        headers={"Idempotency-Key": "missing-worker-config"},
+    )
+
+    assert response.status_code == 503
 
 
 def test_health_reports_maxkb_unconfigured_without_password(tmp_path: Path, monkeypatch: Any) -> None:
@@ -184,7 +328,11 @@ def test_pipeline_failure_is_persisted_with_safe_shape(tmp_path: Path) -> None:
     app = create_app(settings, JsonStateStore(settings.state_file), FailingAdapters(tmp_path))
     client = TestClient(app)
 
-    created = client.post("/api/preflight/ocr-ingestions", json=request_payload(source))
+    created = client.post(
+        "/api/preflight/ocr-ingestions",
+        json=request_payload(source),
+        headers=auth_headers(**{"Idempotency-Key": "pipeline-failure-test"}),
+    )
 
     assert created.status_code == 202
     record = created.json()
@@ -194,5 +342,8 @@ def test_pipeline_failure_is_persisted_with_safe_shape(tmp_path: Path) -> None:
         "summary": "provider request failed",
         "safeDiagnostics": {"exceptionType": "RuntimeError"},
     }
-    persisted = client.get(f"/api/preflight/ocr-ingestions/{record['ingestionId']}").json()
+    persisted = client.get(
+        f"/api/preflight/ocr-ingestions/{record['ingestionId']}",
+        headers=auth_headers(),
+    ).json()
     assert persisted["error"] == record["error"]

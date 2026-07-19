@@ -45,10 +45,22 @@ Goal: run through a MaxKB-based private knowledge-base pilot for construction su
 - [x] D2 Confirm Ascend servers provide model-service endpoints only; they do not own MaxKB business state.
 - [x] D3 Confirm the first pilot scenario: opening-condition review plus construction-plan review for one project and one施工 / 分包队伍.
 - [x] D4 Confirm first-stage dataset grain: project-level logical knowledge base with metadata filtering.
-- [ ] D5 Prepare a first pilot document pack with 10-30 representative files.
-- [ ] D6 Run MaxKB locally on Windows with Docker Desktop and validate knowledge-base upload/search/chat.
-- [ ] D7 Configure an initial LLM provider, embedding model, and optional reranker for the pilot.
-- [ ] D8 Convert pilot learnings into formal OpenSpec/spec-kit requirements before backend customization.
+- [x] D5 Prepare a first pilot document pack with 10-30 representative files.
+- [x] D6 Run MaxKB locally on Windows with Docker Desktop and validate knowledge-base upload/search/chat.
+- [x] D7 Configure an initial LLM provider, embedding model, and optional reranker for the pilot.
+- [x] D8 Convert pilot learnings into formal OpenSpec/spec-kit requirements before backend customization.
+
+## Task Group E — MaxKB Preflight Worker Integration
+
+Priority: highest for current platform integration
+Goal: make the OCR/MaxKB path callable and safe for the condition-review platform.
+
+- [x] E1 Implement the standalone FastAPI worker without changing MaxKB Django ownership.
+- [x] E2 Protect business APIs with server-side bearer authentication.
+- [x] E3 Add idempotent ingestion registration and conflict handling.
+- [x] E4 Preserve platform correlation ids across OCR task state.
+- [x] E5 Expose safe worker capabilities and provider readiness.
+- [x] E6 Archive the callable API contract and local runbook.
 
 ## 本轮说明
 

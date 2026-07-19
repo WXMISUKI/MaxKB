@@ -83,6 +83,69 @@ type CertificatePostprocessResult = {
 
 ## 3. API 草案
 
+### 3.0 鉴权、幂等与审计请求头
+
+`GET /health` 不需要鉴权。其余业务 API 必须携带：
+
+```http
+Authorization: Bearer <PREFLIGHT_API_KEY>
+```
+
+创建 OCR 任务必须额外携带：
+
+```http
+Idempotency-Key: opening-condition:evidence-001:sha256-...
+X-Correlation-ID: review-task-opening-condition-lj01
+```
+
+约束：
+
+- `Idempotency-Key` 长度为 8 到 200 个字符。
+- 同 key、同请求返回已有 `ingestionId`，不重复提交 OCR。
+- 同 key、不同请求返回 `409 Conflict`。
+- `X-Correlation-ID` 可选；缺失时由 Worker 生成。
+- `PREFLIGHT_API_KEY` 未配置时业务 API 返回 `503`，凭据错误时返回 `401`。
+
+### 3.0.1 Worker readiness
+
+`GET /health`
+
+返回：
+
+```json
+{
+  "service": "preflight-ocr-worker",
+  "ready": true,
+  "status": "ready",
+  "authentication": {
+    "configured": true,
+    "scheme": "bearer"
+  },
+  "capabilities": {
+    "ocr": true,
+    "certificatePostprocess": true,
+    "knowledgeIngestion": true,
+    "retrievalCheck": true,
+    "idempotentSubmission": true,
+    "correlationPropagation": true
+  },
+  "providers": {
+    "paddleocr_vl": {
+      "configured": true,
+      "ready": true,
+      "status": "ready"
+    },
+    "maxkb": {
+      "configured": true,
+      "ready": true,
+      "status": "ready"
+    }
+  }
+}
+```
+
+只有 Worker 鉴权、PaddleOCR 和 MaxKB 均已配置时，整体 `ready=true`。
+
 ### 3.1 注册扫描件并提交 OCR
 
 `POST /api/preflight/ocr-ingestions`
@@ -132,6 +195,9 @@ type CertificatePostprocessResult = {
   "correlationId": "corr_..."
 }
 ```
+
+平台重试时必须复用原 `Idempotency-Key`。即使临时源文件已被移动，只要请求体与 key 一致，Worker 仍返回
+原任务，不会重新读取文件或重复执行 OCR。
 
 ### 3.2 查询 OCR/后处理状态
 
@@ -293,7 +359,9 @@ type CertificatePostprocessResult = {
 ## 5. 安全约束
 
 - `PADDLEOCR_TOKEN`、MaxKB token、OpenAI-compatible API key 不得进入请求日志、报告或前端响应。
+- `PREFLIGHT_API_KEY` 只允许通过服务端环境变量和 Bearer header 传递。
 - 不返回 PaddleOCR 结果下载私有 URL，只返回平台归档后的 artifact 路径或对象 ID。
+- 不返回内部请求指纹或 Worker 解析后的绝对源路径。
 - OCR 原文、结构化字段和检索命中只能作为支持性证据。
 - 正式合格/退回结论必须由平台规则和人工审核产生。
 
@@ -311,8 +379,8 @@ type CertificatePostprocessResult = {
 
 ## 7. 下一步落地建议
 
-1. 用真实安全生产许可证和人员证书扫描件跑通本合同。
-2. 将当前脚本封装为一个本地 FastAPI/后端服务原型。
+1. 使用前置平台真实请求跑通 Bearer 鉴权、幂等重试、状态查询和 correlationId 追踪。
+2. 用真实安全生产许可证和人员证书扫描件跑通本合同。
 3. 把 `EvidenceMetadata` 固化为前置平台上传请求的一部分。
-4. 增加对象存储引用，避免在正式环境返回本地路径。
-5. 增加审计表，记录 `correlationId`、provider job id、artifact refs 和入库状态。
+4. 增加对象存储引用，避免正式环境依赖本地共享路径。
+5. 单机联调稳定后，再引入 PostgreSQL 审计表和 Redis/Celery 持久任务。

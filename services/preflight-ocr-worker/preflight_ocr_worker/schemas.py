@@ -92,5 +92,6 @@ class HealthResponse(ApiModel):
     service: str
     ready: bool
     status: Literal["ready", "degraded"]
+    authentication: dict[str, Any]
+    capabilities: dict[str, bool]
     providers: dict[str, dict[str, Any]]
-
