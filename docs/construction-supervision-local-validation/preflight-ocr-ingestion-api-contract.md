@@ -27,9 +27,13 @@ type EvidenceMetadata = {
   projectId: string;
   projectName?: string;
   contractPackageId: string;
+  sectionId?: string;
+  supervisionSectionId?: string;
   teamId: string;
   teamName?: string;
+  subcontractTeamId?: string;
   reviewTaskId: string;
+  basisVersionId?: string;
   documentType:
     | "business_license"
     | "safety_production_license"
@@ -41,6 +45,11 @@ type EvidenceMetadata = {
   sourceFileName: string;
   sourceFilePath?: string;
   contentHash?: string;
+  masterDataIds?: string[];
+  evidenceIds?: string[];
+  effectiveStatus?: string;
+  effectiveDate?: string;
+  indexedAt?: string;
 };
 ```
 
@@ -159,14 +168,22 @@ X-Correlation-ID: review-task-opening-condition-lj01
     "projectId": "project-njdl-jd-a1",
     "projectName": "南江至东岭高速公路改扩建工程",
     "contractPackageId": "contract-jd-a1",
+    "sectionId": "section-lj",
+    "supervisionSectionId": "supervision-jd-a1",
     "teamId": "team-lj-01",
     "teamName": "LJ-01 路基土石方分包作业队",
+    "subcontractTeamId": "team-lj-01",
     "reviewTaskId": "opening-condition-lj01",
+    "basisVersionId": "basis-opening-condition-2026-07",
     "documentType": "business_license",
     "sourceObjectId": "evidence-001",
     "sourceObjectType": "pdf",
     "sourceFileName": "人员-营业执照.pdf",
-    "contentHash": "sha256:..."
+    "contentHash": "sha256:...",
+    "masterDataIds": ["master-subcontract-team-lj01"],
+    "evidenceIds": ["evidence-001"],
+    "effectiveStatus": "current",
+    "effectiveDate": "2026-07-19"
   },
   "source": {
     "mode": "local_path",
@@ -379,8 +396,8 @@ X-Correlation-ID: review-task-opening-condition-lj01
 
 ## 7. 下一步落地建议
 
-1. 使用前置平台真实请求跑通 Bearer 鉴权、幂等重试、状态查询和 correlationId 追踪。
-2. 用真实安全生产许可证和人员证书扫描件跑通本合同。
-3. 把 `EvidenceMetadata` 固化为前置平台上传请求的一部分。
+1. 按 `preflight-organization-knowledge-design.md` 在前置平台建立组织结构、证据和知识库绑定表。
+2. 使用 `preflight-platform-worker-call-guide.md` 跑通 Bearer 鉴权、幂等重试、状态查询和 correlationId 追踪。
+3. 用真实安全生产许可证和人员证书扫描件跑通本合同。
 4. 增加对象存储引用，避免正式环境依赖本地共享路径。
 5. 单机联调稳定后，再引入 PostgreSQL 审计表和 Redis/Celery 持久任务。

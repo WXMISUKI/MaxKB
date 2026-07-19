@@ -307,6 +307,12 @@ def write_csv(path: Path, fields: dict[str, Any]) -> None:
             writer.writerow({"field": key, "value": json.dumps(value, ensure_ascii=False) if isinstance(value, list) else value})
 
 
+def format_metadata_value(value: Any) -> str:
+    if isinstance(value, (list, dict)):
+        return json.dumps(value, ensure_ascii=False)
+    return str(value)
+
+
 def write_ingest_markdown(
     path: Path,
     source: Path,
@@ -333,7 +339,7 @@ def write_ingest_markdown(
             ]
         )
         for key, value in metadata.items():
-            lines.append(f"| {key} | {value or '未填写'} |")
+            lines.append(f"| {key} | {format_metadata_value(value) if value else '未填写'} |")
         lines.append("")
     lines.extend(
         [
@@ -543,23 +549,33 @@ def dedupe_rows(rows: list[dict[str, Any]], keys: list[str]) -> list[dict[str, A
     return list(deduped.values())
 
 
-def clean_metadata(metadata: dict[str, str]) -> dict[str, str]:
+def clean_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in metadata.items() if value}
 
 
-def metadata_from_args(args: argparse.Namespace) -> dict[str, str]:
+def metadata_from_args(args: argparse.Namespace) -> dict[str, Any]:
     return clean_metadata(
         {
             "organization_id": args.organization_id,
             "project_id": args.project_id,
             "project_name": args.project_name,
             "contract_package_id": args.contract_package_id,
+            "section_id": args.section_id,
+            "supervision_section_id": args.supervision_section_id,
             "team_id": args.team_id,
             "team_name": args.team_name,
+            "subcontract_team_id": args.subcontract_team_id or args.team_id,
             "review_task_id": args.review_task_id,
+            "basis_version_id": args.basis_version_id,
             "document_type": args.document_type,
             "source_object_type": "ocr_certificate",
             "source_file_path": args.source_file_path,
+            "source_object_id": args.source_object_id,
+            "content_hash": args.content_hash,
+            "master_data_ids": args.master_data_ids,
+            "evidence_ids": args.evidence_ids,
+            "effective_status": args.effective_status,
+            "effective_date": args.effective_date,
         }
     )
 
@@ -595,11 +611,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project-id", default="")
     parser.add_argument("--project-name", default="")
     parser.add_argument("--contract-package-id", default="")
+    parser.add_argument("--section-id", default="")
+    parser.add_argument("--supervision-section-id", default="")
     parser.add_argument("--team-id", default="")
     parser.add_argument("--team-name", default="")
+    parser.add_argument("--subcontract-team-id", default="")
     parser.add_argument("--review-task-id", default="")
+    parser.add_argument("--basis-version-id", default="")
     parser.add_argument("--document-type", default="")
     parser.add_argument("--source-file-path", default="")
+    parser.add_argument("--source-object-id", default="")
+    parser.add_argument("--content-hash", default="")
+    parser.add_argument("--master-data-ids", action="append", default=[])
+    parser.add_argument("--evidence-ids", action="append", default=[])
+    parser.add_argument("--effective-status", default="")
+    parser.add_argument("--effective-date", default="")
     parser.add_argument("--maxkb-base-url", default=DEFAULT_BASE_URL)
     parser.add_argument("--workspace-id", default=DEFAULT_WORKSPACE_ID)
     parser.add_argument("--maxkb-username", default="admin")

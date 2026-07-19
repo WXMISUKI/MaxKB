@@ -57,14 +57,23 @@ class ProviderAdapters:
             "project_id": metadata.get("project_id", ""),
             "project_name": metadata.get("project_name", ""),
             "contract_package_id": metadata.get("contract_package_id", ""),
+            "section_id": metadata.get("section_id", ""),
+            "supervision_section_id": metadata.get("supervision_section_id", ""),
             "team_id": metadata.get("team_id", ""),
             "team_name": metadata.get("team_name", ""),
+            "subcontract_team_id": metadata.get("subcontract_team_id") or metadata.get("team_id", ""),
             "review_task_id": metadata.get("review_task_id", ""),
+            "basis_version_id": metadata.get("basis_version_id", ""),
             "document_type": metadata.get("document_type", ""),
             "source_object_type": metadata.get("source_object_type", ""),
             "source_file_path": metadata.get("source_file_path", ""),
             "source_object_id": metadata.get("source_object_id", ""),
             "content_hash": metadata.get("content_hash", ""),
+            "master_data_ids": metadata.get("master_data_ids", []),
+            "evidence_ids": metadata.get("evidence_ids", []),
+            "effective_status": metadata.get("effective_status", ""),
+            "effective_date": metadata.get("effective_date", ""),
+            "indexed_at": metadata.get("indexed_at", ""),
         }
         artifact = postprocess(Path(source_markdown), certificate_type, script_metadata)
         return {
@@ -158,4 +167,3 @@ class ProviderAdapters:
     @staticmethod
     def _document_name(hit: dict[str, Any]) -> str:
         return str(hit.get("document_name") or hit.get("document", {}).get("name") or "")
-

@@ -67,3 +67,13 @@
 - [x] F8 健康检查输出鉴权配置、Worker capabilities 和 provider readiness。
 - [x] F9 归档平台调用请求头、错误语义和幂等规则。
 - [x] F10 使用公开 HTTP 接口完成 11 项 Worker 回归。
+
+## Task Group G — Organization and Calling Contract
+
+- [x] G1 新增前置平台组织结构与知识库绑定 Spec。
+- [x] G2 明确项目、合同段、标段、施工/分包队伍、审查任务和证据必须由前置平台数据库管理。
+- [x] G3 明确 MaxKB 只创建知识库、文件夹、文档和检索副本，不创建公路工程业务事实。
+- [x] G4 扩展 Worker `EvidenceMetadata`，支持标段、监理标段、分包队伍、依据版本、主数据和证据引用。
+- [x] G5 将扩展 metadata 透传到 OCR 后处理产物。
+- [x] G6 新增前置平台调用 OCR Worker 详细说明文档。
+- [x] G7 新增前置平台组织结构与知识库绑定设计文档。

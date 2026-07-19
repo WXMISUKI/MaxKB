@@ -250,17 +250,30 @@ python docs\construction-supervision-local-validation\scripts\postprocess_ocr_do
 | `project_id` | 项目标识 |
 | `project_name` | 项目名称 |
 | `contract_package_id` | 合同段标识 |
+| `section_id` | 施工标段或工程划分标识 |
+| `supervision_section_id` | 监理标段标识 |
 | `team_id` | 施工/分包队伍标识 |
 | `team_name` | 施工/分包队伍名称 |
+| `subcontract_team_id` | 分包队伍标识；第一阶段可与 `team_id` 保持一致 |
 | `review_task_id` | 审查任务标识，例如 `opening-condition-lj01` |
+| `basis_version_id` | 审查依据版本标识 |
 | `document_type` | 资料类型，例如 `business_license`、`safety_production_license`、`personnel_certificate` |
+| `source_object_id` | 前置平台或对象存储中的原始资料标识 |
+| `source_object_type` | 原始资料类型，例如 `pdf`、`image`、`office`、`url` |
 | `source_file_path` | 原始 PDF/图片路径或对象地址 |
+| `content_hash` | 原始资料内容 hash |
+| `master_data_ids` | 关联的平台主数据 ID 列表 |
+| `evidence_ids` | 关联的平台证据 ID 列表 |
+| `effective_status` | 资料有效状态，例如 `current`、`expired`、`superseded` |
+| `effective_date` | 资料生效日期 |
 
 这些字段会写入 `*-fields.json`、`*-fields.csv`、`*-ingest.md` 和 `postprocess-report.md`。后续前置服务 API 应把这些字段作为上传请求的一部分。
 
 前置服务接口草案见：
 
 - `docs/construction-supervision-local-validation/preflight-ocr-ingestion-api-contract.md`
+- `docs/construction-supervision-local-validation/preflight-platform-worker-call-guide.md`
+- `docs/construction-supervision-local-validation/preflight-organization-knowledge-design.md`
 
 ### 6.4 独立 FastAPI OCR Worker
 
@@ -328,6 +341,11 @@ uv run --project services\preflight-ocr-worker --extra test pytest
 
 当前版本仍是单机原型：进程内 BackgroundTasks + 原子 JSON 状态文件。进入 Linux 多实例部署前，再替换为
 PostgreSQL、Redis/Celery 和对象存储；API schema 与状态语义保持不变。
+
+前置平台联调时优先阅读：
+
+- `docs/construction-supervision-local-validation/preflight-platform-worker-call-guide.md`
+- `docs/construction-supervision-local-validation/preflight-organization-knowledge-design.md`
 
 ## 7. 验收问题
 

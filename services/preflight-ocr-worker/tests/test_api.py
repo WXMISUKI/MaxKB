@@ -14,6 +14,7 @@ class FakeAdapters:
     def __init__(self, root: Path) -> None:
         self.root = root
         self.ocr_calls = 0
+        self.postprocess_metadata: dict[str, Any] = {}
 
     def ocr_and_archive(
         self,
@@ -39,6 +40,7 @@ class FakeAdapters:
         certificate_type: str,
         metadata: dict[str, Any],
     ) -> dict[str, Any]:
+        self.postprocess_metadata = metadata
         ingest = self.root / "business-license-ingest.md"
         ingest.write_text("# 营业执照 OCR 结构化结果", encoding="utf-8")
         return {
@@ -111,12 +113,19 @@ def request_payload(source: Path) -> dict[str, Any]:
             "organizationId": "org-test",
             "projectId": "project-test",
             "contractPackageId": "contract-test",
+            "sectionId": "section-lj",
+            "supervisionSectionId": "supervision-jd-a1",
             "teamId": "team-test",
+            "subcontractTeamId": "team-test",
             "reviewTaskId": "opening-condition-test",
+            "basisVersionId": "basis-2026-07",
             "documentType": "business_license",
             "sourceObjectId": "evidence-test",
             "sourceObjectType": "pdf",
             "sourceFileName": source.name,
+            "masterDataIds": ["master-team-test"],
+            "evidenceIds": ["evidence-test"],
+            "effectiveStatus": "current",
         },
         "source": {"mode": "local_path", "path": str(source)},
         "runAsync": False,
@@ -272,6 +281,28 @@ def test_platform_correlation_id_is_preserved(tmp_path: Path) -> None:
 
     assert created.json()["correlationId"] == "platform-review-task-001"
     assert persisted.json()["correlationId"] == "platform-review-task-001"
+
+
+def test_organization_metadata_is_passed_to_postprocess(tmp_path: Path) -> None:
+    source = tmp_path / "license.pdf"
+    source.write_bytes(b"test")
+    settings = settings_for(tmp_path)
+    adapters = FakeAdapters(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), adapters)
+
+    response = TestClient(app).post(
+        "/api/preflight/ocr-ingestions",
+        json=request_payload(source),
+        headers=auth_headers(**{"Idempotency-Key": "metadata-contract-test"}),
+    )
+
+    assert response.status_code == 202
+    assert adapters.postprocess_metadata["section_id"] == "section-lj"
+    assert adapters.postprocess_metadata["supervision_section_id"] == "supervision-jd-a1"
+    assert adapters.postprocess_metadata["subcontract_team_id"] == "team-test"
+    assert adapters.postprocess_metadata["basis_version_id"] == "basis-2026-07"
+    assert adapters.postprocess_metadata["master_data_ids"] == ["master-team-test"]
+    assert adapters.postprocess_metadata["evidence_ids"] == ["evidence-test"]
 
 
 def test_health_reports_worker_auth_and_capabilities(tmp_path: Path) -> None:

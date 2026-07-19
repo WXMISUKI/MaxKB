@@ -122,6 +122,14 @@
 - `/health` 已输出 Worker 鉴权、capabilities、PaddleOCR 和 MaxKB readiness。
 - 公开 HTTP 接口回归由 4 项扩展到 11 项。
 
+## 本轮完成：组织结构与调用合同
+
+- 明确前置平台必须自建项目、合同段、标段、队伍、审查任务、证据和知识库绑定数据库表。
+- 明确 MaxKB 只作为检索 provider，不作为公路工程资料核查事实库。
+- Worker `EvidenceMetadata` 已扩展到标段、监理标段、分包队伍、依据版本、主数据引用和证据引用。
+- 新增 `preflight-platform-worker-call-guide.md`，用于下一步平台真实联调。
+- 新增 `preflight-organization-knowledge-design.md`，用于前置平台后端建模。
+
 ## 下一阶段推荐任务组
 
 1. 前置平台联调
@@ -129,14 +137,18 @@
    - 验证幂等重试、correlationId、项目/合同段/队伍/审查任务映射和错误处理。
    - 输出一份可复现的联调请求、状态查询、provider refs 和故障记录。
 
-2. 两类真实证照回归
+2. 前置平台数据库最小实现
+   - 建立 Project、ContractPackage、Section、SubcontractTeam、ReviewTask、Evidence、KnowledgeBinding、OcrIngestionLink。
+   - 首版只做 CRUD、唯一键、状态流和 provider refs，不进入自动审批。
+
+3. 两类真实证照回归
    - 分别选取安全生产许可证、人员证书真实扫描件。
    - 跑通 OCR、结构化、人工确认入库和精确字段命中验收。
 
-3. 生产化决策门
+4. 生产化决策门
    - 仅在单机联调稳定后，设计 PostgreSQL 状态库、Redis/Celery 队列和对象存储。
    - 保持现有 API schema 与状态语义，避免前置平台二次改造。
 
-4. 审查工作流原型
+5. 审查工作流原型
    - 以前三项验收结果为输入，再实现“某项目某分包队伍”的开工条件审查。
    - 首版输出缺项提示、支持性意见和来源引用，不自动给出正式审批结论。

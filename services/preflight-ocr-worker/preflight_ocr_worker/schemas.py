@@ -19,15 +19,24 @@ class EvidenceMetadata(ApiModel):
     project_id: str
     project_name: str = ""
     contract_package_id: str
+    section_id: str = ""
+    supervision_section_id: str = ""
     team_id: str
     team_name: str = ""
+    subcontract_team_id: str = ""
     review_task_id: str
+    basis_version_id: str = ""
     document_type: str
     source_object_id: str
     source_object_type: Literal["pdf", "image", "office", "url"]
     source_file_name: str
     source_file_path: str = ""
     content_hash: str = ""
+    master_data_ids: list[str] = Field(default_factory=list)
+    evidence_ids: list[str] = Field(default_factory=list)
+    effective_status: str = ""
+    effective_date: str = ""
+    indexed_at: str = ""
 
 
 class SourceSpec(ApiModel):
