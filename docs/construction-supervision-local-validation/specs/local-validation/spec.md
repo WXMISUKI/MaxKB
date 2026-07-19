@@ -109,6 +109,20 @@ The local pilot SHALL provide a PaddleOCR-VL based ingestion bridge for scanned 
 - **THEN** the automation writes page-level Markdown and a combined Markdown file under `00_ocr_outputs`
 - **AND** the combined Markdown file is treated as a derived artifact, not the original evidence file
 
+#### Scenario: OCR certificate output is post-processed
+
+- **WHEN** OCR markdown contains a supported certificate type such as a business license
+- **THEN** the local pilot can generate cleaned Markdown, structured JSON, structured CSV, and an ingestion Markdown file
+- **AND** repeated OCR noise, image HTML, and overlong repeated phrases are reduced before knowledge-base ingestion
+- **AND** the original OCR markdown remains archived for traceability
+
+#### Scenario: Business license fields are extracted
+
+- **WHEN** OCR markdown is recognized as a business license
+- **THEN** the postprocessor extracts review-supporting fields such as unified social credit code, company name, company type, legal representative, license number, issue date, and business scope
+- **AND** missing key fields are recorded as warnings for human review
+- **AND** the extracted fields are treated as review evidence, not as official authenticity verification
+
 #### Scenario: OCR markdown can be uploaded to MaxKB
 
 - **WHEN** OCR markdown is generated and the operator enables MaxKB upload

@@ -37,6 +37,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--password", default="Admin123@")
     parser.add_argument("--knowledge-name", default=DEFAULT_KNOWLEDGE_NAME)
     parser.add_argument("--query", action="append", required=True, help="Expected query for the OCR document.")
+    parser.add_argument("--expected-document", default="", help="Expected MaxKB document name. Defaults to latest OCR upload.")
+    parser.add_argument("--source", default="", help="Source label used in the report when --expected-document is provided.")
     parser.add_argument("--top-number", type=int, default=8)
     parser.add_argument("--similarity", type=float, default=0.0)
     parser.add_argument("--search-mode", choices=["embedding", "keywords", "blend"], default="blend")
@@ -76,8 +78,8 @@ def hit_snippet(hit: dict[str, Any], limit: int = 180) -> str:
 
 
 def validate(args: argparse.Namespace) -> list[dict[str, str]]:
-    artifact = latest_uploaded_artifact()
-    expected_document = Path(artifact["derived_markdown"]).name
+    artifact = latest_uploaded_artifact() if not args.expected_document else {"source": args.source}
+    expected_document = args.expected_document or Path(artifact["derived_markdown"]).name
     client = MaxKBClient(args.base_url)
     client.login(args.username, args.password)
     knowledge = next(

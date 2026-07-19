@@ -1,0 +1,22 @@
+{
+  "artifacts": [
+    {
+      "source_markdown": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\combined.md",
+      "certificate_type": "business_license",
+      "output_dir": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\postprocessed",
+      "cleaned_markdown": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\postprocessed\\cleaned.md",
+      "ingest_markdown": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\postprocessed\\business-license-ingest.md",
+      "fields_json": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\postprocessed\\business-license-fields.json",
+      "fields_csv": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\postprocessed\\business-license-fields.csv",
+      "report_markdown": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\postprocessed\\postprocess-report.md",
+      "warnings": []
+    }
+  ],
+  "uploads": [
+    {
+      "source_markdown": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\combined.md",
+      "ingest_markdown": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\postprocessed\\business-license-ingest.md",
+      "status": "success"
+    }
+  ]
+}

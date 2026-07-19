@@ -183,6 +183,43 @@ python docs\construction-supervision-local-validation\scripts\validate_ocr_inges
 
 验收重点是“OCR 派生文档能否被召回”，不是判断营业执照是否合格。
 
+### 6.3 OCR 后处理与证照结构化
+
+下一阶段优先方向建议：
+
+1. OCR 证照结构化后处理：最能推进真实资料入库，直接服务前置核查平台上传入口。
+2. 审查任务工作流原型：在资料可稳定召回后再做，避免工作流被脏数据拖偏。
+3. 前置服务 API 合同适配：适合在 OCR/上传/命中验收稳定后，把脚本能力沉到服务接口。
+4. UI 上传入口：等 API 合同稳定后再补，避免先做页面后改接口。
+
+营业执照、人员证书、安全许可证等扫描件不建议把 OCR 原文直接作为最终入库文本。推荐先生成结构化派生物：
+
+```powershell
+python docs\construction-supervision-local-validation\scripts\postprocess_ocr_document.py `
+  --source-markdown "D:\path\ocr-output\combined.md"
+```
+
+如果要把结构化后的 Markdown 上传 MaxKB：
+
+```powershell
+python docs\construction-supervision-local-validation\scripts\postprocess_ocr_document.py `
+  --source-markdown "D:\path\ocr-output\combined.md" `
+  --upload-to-maxkb
+```
+
+脚本会生成：
+
+- `postprocessed/cleaned.md`
+- `postprocessed/business-license-fields.json`
+- `postprocessed/business-license-fields.csv`
+- `postprocessed/business-license-ingest.md`
+- `postprocessed/postprocess-report.md`
+- `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/paddleocr-vl-postprocess-result.json`
+
+`business-license-ingest.md` 是推荐入库文件；它保留结构化字段、经营范围摘录、后处理告警和清洗后 OCR 原文。字段抽取只作为审查证据整理，不替代原件真实性核验。
+
+证照编号、统一社会信用代码、人员证书编号等精确字段检索，建议验收时优先使用 `search_mode=keywords`；审查依据、方案条文、措施描述等语义问题再使用 `blend`。本地实测中，营业执照结构化文档在 `keywords` 模式下两个关键查询均排第 1。
+
 ## 7. 验收问题
 
 使用：
