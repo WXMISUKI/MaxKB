@@ -52,3 +52,100 @@ The local pilot SHALL archive validation results.
 - **THEN** it writes `validation-report.json` and `validation-report.md`
 - **AND** the report distinguishes blocking errors, warnings, and recommended next steps
 
+### Requirement: Local API integration automation
+
+The local pilot SHALL provide an API-first automation path for configuring MaxKB and uploading the pilot dataset.
+
+#### Scenario: OpenAI-compatible LLM is configured
+
+- **WHEN** the operator provides a MaxKB admin credential and an OpenAI-compatible API key through environment variables
+- **THEN** the automation creates or reuses an OpenAI-compatible LLM model in MaxKB
+- **AND** the API key is never written to repository files, specs, runbooks, or result artifacts
+
+#### Scenario: Existing pilot knowledge base is reused
+
+- **WHEN** a knowledge base with the configured pilot name already exists
+- **THEN** the automation reuses that knowledge base
+- **AND** it does not create duplicate knowledge bases
+
+#### Scenario: Pilot documents are uploaded through MaxKB APIs
+
+- **WHEN** the upload plan lists `.docx` and `.xlsx` files
+- **THEN** `.docx` files are imported through the split-preview plus batch-create document API flow
+- **AND** `.xlsx` files are imported through the table document API flow
+- **AND** QA import is skipped unless the upload plan contains QA template files
+
+#### Scenario: Text PDF documents are uploaded through the text flow
+
+- **WHEN** the upload plan lists `.pdf` files with extractable text
+- **THEN** `.pdf` files are imported through the same split-preview plus batch-create document API flow as `.docx`
+- **AND** the automation records them as text-route uploads
+
+#### Scenario: Scanned PDF documents require OCR provider configuration
+
+- **WHEN** a `.pdf` file has no usable text layer or only image content
+- **THEN** the local pilot SHALL mark OCR configuration as required before reliable ingestion
+- **AND** it SHALL not silently treat empty OCR output as a valid document
+
+### Requirement: PaddleOCR-VL scanned-document ingestion
+
+The local pilot SHALL provide a PaddleOCR-VL based ingestion bridge for scanned PDF or image documents.
+
+#### Scenario: OCR provider is configured through environment variables
+
+- **WHEN** the operator provides `PADDLEOCR_TOKEN`, `PADDLEOCR_JOB_URL`, and `PADDLEOCR_MODEL`
+- **THEN** the automation can submit local files or file URLs to PaddleOCR-VL
+- **AND** the token is never written to repository files, specs, runbooks, logs, or result artifacts
+
+#### Scenario: OCR job is polled asynchronously
+
+- **WHEN** a PaddleOCR job is submitted successfully
+- **THEN** the automation polls the job until `done` or `failed`
+- **AND** it records safe job metadata such as job id, state, page count, and result artifact paths
+
+#### Scenario: OCR output is archived before MaxKB ingestion
+
+- **WHEN** OCR returns JSONL or markdown results
+- **THEN** the automation writes page-level Markdown and a combined Markdown file under `00_ocr_outputs`
+- **AND** the combined Markdown file is treated as a derived artifact, not the original evidence file
+
+#### Scenario: OCR markdown can be uploaded to MaxKB
+
+- **WHEN** OCR markdown is generated and the operator enables MaxKB upload
+- **THEN** the combined Markdown file is uploaded through the text document flow
+- **AND** upload results include the original source path and derived markdown path
+
+#### Scenario: OCR upload retrieval is smoke-tested
+
+- **WHEN** OCR markdown upload succeeds
+- **THEN** the local pilot can run focused hit-test queries against the OCR-derived document
+- **AND** it records whether the expected OCR document is retrieved, including rank, similarity, and top-hit snippet
+- **AND** the result remains an ingestion smoke test, not a formal document-review conclusion
+
+#### Scenario: Upload result is archived
+
+- **WHEN** the automation completes or fails partially
+- **THEN** it writes an upload result artifact under `00_manifest`
+- **AND** the artifact records document ids, source paths, API route type, status, and non-secret error messages
+
+### Requirement: Retrieval hit validation
+
+The local pilot SHALL validate knowledge-base retrieval quality with the archived review question set.
+
+#### Scenario: Review questions are executed through MaxKB hit-test API
+
+- **WHEN** `review-question-set.md` contains opening-condition and construction-plan questions
+- **THEN** the automation executes each question through MaxKB `hit_test`
+- **AND** it records top hits, similarity scores, document names, paragraph titles, and source snippets
+
+#### Scenario: Retrieval quality is classified for human review
+
+- **WHEN** hit-test results are available
+- **THEN** each question is classified as `pass`, `review`, or `fail` using configurable hit-count and similarity thresholds
+- **AND** the result remains a retrieval-quality signal, not a formal approval or rejection conclusion
+
+#### Scenario: Retrieval report is archived
+
+- **WHEN** retrieval validation completes
+- **THEN** the automation writes `retrieval-hit-validation.csv` and `retrieval-hit-validation.md`
+- **AND** the report lists recommended next actions without changing the knowledge base

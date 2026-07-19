@@ -76,6 +76,113 @@ docker run -d --name=maxkb --restart=always -p 8080:8080 -v C:/maxkb:/opt/maxkb 
 
 不要第一轮就在 Windows 本机部署大模型。后续迁移到昇腾时，只替换模型服务 endpoint。
 
+### 6.1 API 自动配置与上传
+
+本地验证优先走 API，而不是人工模拟前端点击。当前脚本会：
+
+- 登录本地 MaxKB
+- 创建或复用 OpenAI-compatible LLM
+- 创建或复用项目级知识库
+- 按 `00_manifest/maxkb-upload-plan.csv` 上传资料包
+- 输出 `00_manifest/maxkb-upload-result.csv`
+
+在 PowerShell 中运行：
+
+```powershell
+$env:MIMO_API_KEY = "<你的 TokenPlan API Key>"
+python docs\construction-supervision-local-validation\scripts\configure_and_upload_maxkb.py
+Remove-Item Env:\MIMO_API_KEY
+```
+
+默认本地 MaxKB：
+
+```text
+URL: http://localhost:8080/admin/api
+用户名：admin
+密码：Admin123@
+工作空间：default
+LLM Provider：OpenAI
+模型：mimo-v2.5-pro
+API Base：https://token-plan-cn.xiaomimimo.com/v1
+```
+
+如果你修改过 MaxKB 管理员密码：
+
+```powershell
+$env:MAXKB_PASSWORD = "<当前 MaxKB 管理员密码>"
+$env:MIMO_API_KEY = "<你的 TokenPlan API Key>"
+python docs\construction-supervision-local-validation\scripts\configure_and_upload_maxkb.py
+Remove-Item Env:\MAXKB_PASSWORD
+Remove-Item Env:\MIMO_API_KEY
+```
+
+资料类型映射：
+
+- `.docx` / 文本型 `.pdf`：文本文件，脚本使用 `document/split` 预览分段后再调用 `document/batch_create`
+- `.xlsx`：表格，脚本调用 `document/table`
+- QA 问答对：仅适用于 MaxKB QA 模板文件，本轮 29 份模拟资料包不需要走 QA 上传
+
+扫描件 PDF 暂不直接进入 MaxKB 原生上传流。当前已具备 PaddleOCR-VL 的 endpoint、model 和 token 获取方式，先通过独立脚本完成 OCR 派生 Markdown 归档与可选入库；等本地链路稳定后，再决定是否把 PDF/OCR 入口产品化到前置审查平台或 MaxKB 插件层。
+
+### 6.2 PaddleOCR-VL 扫描件入口
+
+扫描件 PDF 或图片类资料先走 OCR 派生物归档，再选择性上传 MaxKB。
+
+官方异步 API 约束：
+
+- 参考文档：[PaddleOCR-VL 服务化部署调用示例及 API 介绍](https://ai.baidu.com/ai-doc/AISTUDIO/2mh4okm66)
+- 单次请求最大支持 1000 页 PDF
+- 文件 URL 最大 200 MB
+- 本地文件上传最大 50 MB
+- 提交任务：`POST /api/v2/ocr/jobs`
+- 查询任务：`GET /api/v2/ocr/jobs/{jobId}`
+- 完成后结果中包含 `resultUrl.jsonUrl` / `resultUrl.markdownUrl`
+
+PowerShell 示例：
+
+```powershell
+$env:PADDLEOCR_TOKEN = "<你的 PaddleOCR Token>"
+$env:PADDLEOCR_JOB_URL = "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs"
+$env:PADDLEOCR_MODEL = "PaddleOCR-VL-1.6"
+
+python docs\construction-supervision-local-validation\scripts\paddleocr_vl_ingest.py "D:\path\scanned.pdf"
+
+Remove-Item Env:\PADDLEOCR_TOKEN
+Remove-Item Env:\PADDLEOCR_JOB_URL
+Remove-Item Env:\PADDLEOCR_MODEL
+```
+
+如果确认 OCR Markdown 内容可入库，再加 `--upload-to-maxkb`：
+
+```powershell
+$env:PADDLEOCR_TOKEN = "<你的 PaddleOCR Token>"
+python docs\construction-supervision-local-validation\scripts\paddleocr_vl_ingest.py "D:\path\scanned.pdf" --upload-to-maxkb
+Remove-Item Env:\PADDLEOCR_TOKEN
+```
+
+脚本会生成：
+
+- `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/00_ocr_outputs/<source>-<jobId>/page_*.md`
+- `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/00_ocr_outputs/<source>-<jobId>/<source>-ocr-derived.md`
+- `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/paddleocr-vl-result.json`
+
+这些 Markdown 是 OCR 派生物，不替代原始证据文件。正式审查时仍应保留原始 PDF/图片对象引用。
+
+上传后建议立即做 OCR 入库命中验收：
+
+```powershell
+python docs\construction-supervision-local-validation\scripts\validate_ocr_ingest_hit.py `
+  --query "统一社会信用代码 91310115515002x94" `
+  --query "营业执照 正照编号 1200000202112250104"
+```
+
+脚本会生成：
+
+- `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/paddleocr-vl-retrieval-check.csv`
+- `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/paddleocr-vl-retrieval-check.md`
+
+验收重点是“OCR 派生文档能否被召回”，不是判断营业执照是否合格。
+
 ## 7. 验收问题
 
 使用：
@@ -92,6 +199,26 @@ docker run -d --name=maxkb --restart=always -p 8080:8080 -v C:/maxkb:/opt/maxkb 
 - 是否能标注来源
 - 是否把支持性召回误写成正式结论
 
+可先运行自动命中验收：
+
+```powershell
+python docs\construction-supervision-local-validation\scripts\validate_retrieval_hits.py
+```
+
+脚本会生成：
+
+- `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/retrieval-hit-validation.csv`
+- `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/retrieval-hit-validation.md`
+
+默认策略：
+
+- `search_mode=blend`
+- `top_number=5`
+- `similarity=0.1`
+- 每题至少 3 条召回且最高相似度不低于 0.25 时标为 `pass`
+
+`pass/review/fail` 只代表召回质量分级，不代表审查批准、退回或合格结论。
+
 ## 8. 进入源码改造的判断
 
 只有出现以下问题，才进入源码级改造：
@@ -102,4 +229,3 @@ docker run -d --name=maxkb --restart=always -p 8080:8080 -v C:/maxkb:/opt/maxkb 
 - 工作流无法表达“支持性召回 + 人工确认”
 
 否则下一阶段优先做工作流应用原型，而不是后端模型大改。
-

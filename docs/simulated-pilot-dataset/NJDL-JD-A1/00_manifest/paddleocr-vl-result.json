@@ -1,0 +1,21 @@
+{
+  "artifacts": [
+    {
+      "source": "D:\\AI\\知识库\\开工条件核查\\条件核查(1)\\人员-营业执照.pdf",
+      "job_id": "72198327051485184",
+      "state": "done",
+      "page_count": 1,
+      "output_dir": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184",
+      "combined_markdown": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\combined.md",
+      "has_json_url": true,
+      "has_markdown_url": false
+    }
+  ],
+  "uploads": [
+    {
+      "source": "D:\\AI\\知识库\\开工条件核查\\条件核查(1)\\人员-营业执照.pdf",
+      "derived_markdown": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1\\00_manifest\\00_ocr_outputs\\_-_-72198327051485184\\combined.md",
+      "status": "success"
+    }
+  ]
+}
