@@ -2,6 +2,21 @@
 
 原始 OCR Markdown：`D:\AI\AIcode\MaxKB\docs\simulated-pilot-dataset\NJDL-JD-A1\00_manifest\00_ocr_outputs\_-_-72198327051485184\combined.md`
 
+## 资料元数据
+
+| 字段 | 值 |
+| --- | --- |
+| organization_id | org-supervision-demo |
+| project_id | project-njdl-jd-a1 |
+| project_name | 南江至东岭高速公路改扩建工程 |
+| contract_package_id | contract-jd-a1 |
+| team_id | team-lj-01 |
+| team_name | LJ-01 路基土石方分包作业队 |
+| review_task_id | opening-condition-lj01 |
+| document_type | business_license |
+| source_object_type | ocr_certificate |
+| source_file_path | D:\AI\知识库\开工条件核查\条件核查(1)\人员-营业执照.pdf |
+
 ## 结构化字段
 
 | 字段 | 值 |

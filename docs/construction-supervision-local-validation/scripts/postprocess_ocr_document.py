@@ -3,8 +3,9 @@
 Post-process OCR-derived Markdown into cleaner evidence Markdown and structured
 certificate fields.
 
-The first supported certificate type is a Chinese business license. The script
-uses deterministic extraction rules so failures are reviewable and repeatable.
+Supported certificate types are business license, safety production license,
+and personnel certificate. The script uses deterministic extraction rules so
+failures are reviewable and repeatable.
 """
 
 from __future__ import annotations
@@ -30,6 +31,17 @@ from configure_and_upload_maxkb import (
 
 OCR_RESULT_INDEX = PILOT_ROOT / "00_manifest" / "paddleocr-vl-result.json"
 POSTPROCESS_INDEX = PILOT_ROOT / "00_manifest" / "paddleocr-vl-postprocess-result.json"
+SUPPORTED_CERTIFICATE_TYPES = {"business_license", "safety_production_license", "personnel_certificate"}
+CERTIFICATE_OUTPUT_PREFIX = {
+    "business_license": "business-license",
+    "safety_production_license": "safety-production-license",
+    "personnel_certificate": "personnel-certificate",
+}
+CERTIFICATE_TITLES = {
+    "business_license": "营业执照",
+    "safety_production_license": "安全生产许可证",
+    "personnel_certificate": "人员证书",
+}
 
 
 @dataclass
@@ -43,6 +55,7 @@ class PostprocessArtifact:
     report_markdown: Path
     certificate_type: str
     extracted_fields: dict[str, Any]
+    metadata: dict[str, str]
     warnings: list[str]
 
 
@@ -100,6 +113,29 @@ def extract_line_value(text: str, label: str) -> str:
     return ""
 
 
+def extract_first_label_value(text: str, labels: list[str], stop_labels: list[str]) -> str:
+    for label in labels:
+        line_value = extract_line_value(text, label)
+        if line_value:
+            return line_value
+    for label in labels:
+        value = extract_after_label(text, label, stop_labels)
+        if value:
+            return value
+    return ""
+
+
+def detect_certificate_type(text: str) -> str:
+    compact = compact_text(text)
+    if "安全生产许可证" in compact:
+        return "safety_production_license"
+    if "营业执照" in compact or "统一社会信用代码" in compact:
+        return "business_license"
+    if "证书编号" in compact and any(keyword in compact for keyword in ["姓名", "岗位", "安全员", "质检员", "测量员"]):
+        return "personnel_certificate"
+    return "business_license"
+
+
 def extract_business_license_fields(text: str) -> tuple[dict[str, Any], list[str]]:
     normalized = certificate_body(normalize_text(text))
     compact = compact_text(normalized)
@@ -135,6 +171,72 @@ def extract_business_license_fields(text: str) -> tuple[dict[str, Any], list[str
     return fields, warnings
 
 
+def extract_safety_production_license_fields(text: str) -> tuple[dict[str, Any], list[str]]:
+    normalized = normalize_text(text)
+    compact = compact_text(normalized)
+    warnings: list[str] = []
+    dates = re.findall(r"\d{4}年\d{1,2}月\d{1,2}日", normalized)
+    license_number = extract_first_label_value(
+        normalized,
+        ["编号", "证书编号", "许可证编号", "安全生产许可证编号"],
+        ["单位名称", "企业名称", "主要负责人", "法定代表人", "许可范围", "有效期", "发证机关"],
+    )
+    fields: dict[str, Any] = {
+        "certificate_type": "safety_production_license",
+        "license_number": license_number or _first_match(compact, r"[（(]?[A-Za-z0-9\u4e00-\u9fff-]{2,20}安许证字[）)]?第?[A-Za-z0-9-]+号?"),
+        "company_name": extract_first_label_value(normalized, ["单位名称", "企业名称", "名称"], ["主要负责人", "法定代表人", "许可范围", "有效期", "发证机关"]),
+        "principal_person": extract_first_label_value(normalized, ["主要负责人", "法定代表人"], ["许可范围", "有效期", "发证机关"]),
+        "permitted_scope": extract_first_label_value(normalized, ["许可范围", "许可内容"], ["有效期", "发证机关", "签发日期"]),
+        "issuing_authority": extract_first_label_value(normalized, ["发证机关", "签发机关"], ["有效期", "签发日期"]),
+        "dates": dates,
+        "valid_from": dates[0] if dates else "",
+        "valid_until": dates[-1] if dates else "",
+        "issue_date": dates[-1] if dates else "",
+        "review_hint": "",
+    }
+    fields["permitted_scope"] = trim_overlong_scope(fields["permitted_scope"], limit=360)
+    fields["review_hint"] = build_safety_license_review_hint(fields)
+    for key in ["license_number", "company_name", "valid_until"]:
+        if not fields.get(key):
+            warnings.append(f"未抽取到关键字段：{key}")
+    return fields, warnings
+
+
+def extract_personnel_certificate_fields(text: str) -> tuple[dict[str, Any], list[str]]:
+    normalized = normalize_text(text)
+    warnings: list[str] = []
+    dates = re.findall(r"\d{4}年\d{1,2}月\d{1,2}日|\d{4}-\d{1,2}-\d{1,2}", normalized)
+    fields: dict[str, Any] = {
+        "certificate_type": "personnel_certificate",
+        "name": extract_first_label_value(normalized, ["姓名"], ["岗位", "职务", "证书编号", "发证机关", "有效期", "单位"]),
+        "role": extract_first_label_value(normalized, ["岗位", "职务", "资格类别"], ["证书编号", "发证机关", "有效期", "单位"]),
+        "certificate_number": extract_first_label_value(normalized, ["证书编号", "编号"], ["发证机关", "有效期", "单位", "到岗状态"]),
+        "issuing_authority": extract_first_label_value(normalized, ["发证机关", "签发机关"], ["有效期", "单位", "到岗状态"]),
+        "company_name": extract_first_label_value(normalized, ["单位", "聘用单位", "所属单位"], ["到岗状态", "审查意见", "有效期"]),
+        "attendance_status": extract_first_label_value(normalized, ["到岗状态"], ["审查意见", "备注"]),
+        "dates": dates,
+        "valid_until": dates[-1] if dates else "",
+        "review_hint": "",
+    }
+    fields["review_hint"] = build_personnel_certificate_review_hint(fields)
+    for key in ["name", "role", "certificate_number", "valid_until"]:
+        if not fields.get(key):
+            warnings.append(f"未抽取到关键字段：{key}")
+    return fields, warnings
+
+
+def extract_certificate_fields(text: str, certificate_type: str = "auto") -> tuple[dict[str, Any], list[str]]:
+    normalized = normalize_text(text)
+    resolved_type = detect_certificate_type(normalized) if certificate_type == "auto" else certificate_type
+    if resolved_type not in SUPPORTED_CERTIFICATE_TYPES:
+        raise ValueError(f"Unsupported certificate type: {resolved_type}")
+    if resolved_type == "business_license":
+        return extract_business_license_fields(normalized)
+    if resolved_type == "safety_production_license":
+        return extract_safety_production_license_fields(normalized)
+    return extract_personnel_certificate_fields(normalized)
+
+
 def _first_match(text: str, pattern: str) -> str:
     match = re.search(pattern, text)
     return match.group(0) if match else ""
@@ -159,6 +261,34 @@ def build_review_hint(fields: dict[str, Any]) -> str:
     return "；".join(parts)
 
 
+def build_safety_license_review_hint(fields: dict[str, Any]) -> str:
+    parts = []
+    if fields.get("company_name"):
+        parts.append(f"企业名称为 {fields['company_name']}")
+    if fields.get("license_number"):
+        parts.append(f"安全生产许可证编号为 {fields['license_number']}")
+    if fields.get("valid_until"):
+        parts.append(f"有效期至 {fields['valid_until']}")
+    if fields.get("permitted_scope"):
+        parts.append(f"许可范围为 {fields['permitted_scope']}")
+    return "；".join(parts)
+
+
+def build_personnel_certificate_review_hint(fields: dict[str, Any]) -> str:
+    parts = []
+    if fields.get("name"):
+        parts.append(f"人员姓名为 {fields['name']}")
+    if fields.get("role"):
+        parts.append(f"岗位为 {fields['role']}")
+    if fields.get("certificate_number"):
+        parts.append(f"证书编号为 {fields['certificate_number']}")
+    if fields.get("valid_until"):
+        parts.append(f"有效期至 {fields['valid_until']}")
+    if fields.get("attendance_status"):
+        parts.append(f"到岗状态为 {fields['attendance_status']}")
+    return "；".join(parts)
+
+
 def latest_ocr_markdown() -> Path:
     if not OCR_RESULT_INDEX.exists():
         raise FileNotFoundError(f"OCR result index not found: {OCR_RESULT_INDEX}")
@@ -177,27 +307,42 @@ def write_csv(path: Path, fields: dict[str, Any]) -> None:
             writer.writerow({"field": key, "value": json.dumps(value, ensure_ascii=False) if isinstance(value, list) else value})
 
 
-def write_ingest_markdown(path: Path, source: Path, fields: dict[str, Any], cleaned_text: str, warnings: list[str]) -> None:
-    rows = [
-        ("证照类型", "营业执照"),
-        ("统一社会信用代码", fields.get("unified_social_credit_code", "")),
-        ("名称", fields.get("company_name", "")),
-        ("类型", fields.get("company_type", "")),
-        ("法定代表人", fields.get("legal_representative", "")),
-        ("正照编号", fields.get("license_number", "")),
-        ("签发/登记日期", fields.get("issue_date", "")),
-        ("审查提示", fields.get("review_hint", "")),
-    ]
+def write_ingest_markdown(
+    path: Path,
+    source: Path,
+    fields: dict[str, Any],
+    metadata: dict[str, str],
+    cleaned_text: str,
+    warnings: list[str],
+) -> None:
+    title = CERTIFICATE_TITLES.get(fields["certificate_type"], fields["certificate_type"])
+    rows = ingest_rows(fields)
     lines = [
-        "# 营业执照 OCR 结构化结果",
+        f"# {title} OCR 结构化结果",
         "",
         f"原始 OCR Markdown：`{source}`",
         "",
+    ]
+    if metadata:
+        lines.extend(
+            [
+                "## 资料元数据",
+                "",
+                "| 字段 | 值 |",
+                "| --- | --- |",
+            ]
+        )
+        for key, value in metadata.items():
+            lines.append(f"| {key} | {value or '未填写'} |")
+        lines.append("")
+    lines.extend(
+        [
         "## 结构化字段",
         "",
         "| 字段 | 值 |",
         "| --- | --- |",
-    ]
+        ]
+    )
     for key, value in rows:
         lines.append(f"| {key} | {value or '未识别'} |")
     lines.extend(
@@ -205,7 +350,7 @@ def write_ingest_markdown(path: Path, source: Path, fields: dict[str, Any], clea
             "",
             "## 经营范围摘录",
             "",
-            fields.get("business_scope") or "未识别",
+            fields.get("business_scope") or fields.get("permitted_scope") or "未识别",
             "",
             "## 后处理告警",
             "",
@@ -214,6 +359,43 @@ def write_ingest_markdown(path: Path, source: Path, fields: dict[str, Any], clea
     lines.extend([f"- {warning}" for warning in warnings] or ["- 无"])
     lines.extend(["", "## 清洗后 OCR 原文", "", cleaned_text])
     path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def ingest_rows(fields: dict[str, Any]) -> list[tuple[str, Any]]:
+    certificate_type = fields["certificate_type"]
+    if certificate_type == "business_license":
+        return [
+            ("证照类型", "营业执照"),
+            ("统一社会信用代码", fields.get("unified_social_credit_code", "")),
+            ("名称", fields.get("company_name", "")),
+            ("类型", fields.get("company_type", "")),
+            ("法定代表人", fields.get("legal_representative", "")),
+            ("正照编号", fields.get("license_number", "")),
+            ("签发/登记日期", fields.get("issue_date", "")),
+            ("审查提示", fields.get("review_hint", "")),
+        ]
+    if certificate_type == "safety_production_license":
+        return [
+            ("证照类型", "安全生产许可证"),
+            ("许可证编号", fields.get("license_number", "")),
+            ("企业名称", fields.get("company_name", "")),
+            ("主要负责人", fields.get("principal_person", "")),
+            ("许可范围", fields.get("permitted_scope", "")),
+            ("有效期至", fields.get("valid_until", "")),
+            ("发证机关", fields.get("issuing_authority", "")),
+            ("审查提示", fields.get("review_hint", "")),
+        ]
+    return [
+        ("证照类型", "人员证书"),
+        ("姓名", fields.get("name", "")),
+        ("岗位", fields.get("role", "")),
+        ("证书编号", fields.get("certificate_number", "")),
+        ("发证机关", fields.get("issuing_authority", "")),
+        ("聘用/所属单位", fields.get("company_name", "")),
+        ("有效期至", fields.get("valid_until", "")),
+        ("到岗状态", fields.get("attendance_status", "")),
+        ("审查提示", fields.get("review_hint", "")),
+    ]
 
 
 def write_report(path: Path, artifact: PostprocessArtifact) -> None:
@@ -225,21 +407,18 @@ def write_report(path: Path, artifact: PostprocessArtifact) -> None:
         f"- source_markdown：`{artifact.source_markdown}`",
         f"- certificate_type：{artifact.certificate_type}",
         f"- extracted_field_count：{sum(1 for value in artifact.extracted_fields.values() if value)}",
+        f"- metadata_field_count：{sum(1 for value in artifact.metadata.values() if value)}",
         f"- warnings：{len(artifact.warnings)}",
         "",
         "## 关键字段",
         "",
     ]
-    for key in [
-        "unified_social_credit_code",
-        "company_name",
-        "company_type",
-        "legal_representative",
-        "license_number",
-        "issue_date",
-        "review_hint",
-    ]:
+    for key in report_keys(artifact.certificate_type):
         lines.append(f"- {key}：{artifact.extracted_fields.get(key) or '未识别'}")
+    if artifact.metadata:
+        lines.extend(["", "## 资料元数据", ""])
+        for key, value in artifact.metadata.items():
+            lines.append(f"- {key}：{value or '未填写'}")
     lines.extend(["", "## 输出文件", ""])
     for output in [artifact.cleaned_markdown, artifact.ingest_markdown, artifact.fields_json, artifact.fields_csv]:
         lines.append(f"- `{output}`")
@@ -249,25 +428,66 @@ def write_report(path: Path, artifact: PostprocessArtifact) -> None:
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def postprocess(source_markdown: Path) -> PostprocessArtifact:
+def report_keys(certificate_type: str) -> list[str]:
+    if certificate_type == "business_license":
+        return [
+            "unified_social_credit_code",
+            "company_name",
+            "company_type",
+            "legal_representative",
+            "license_number",
+            "issue_date",
+            "review_hint",
+        ]
+    if certificate_type == "safety_production_license":
+        return [
+            "license_number",
+            "company_name",
+            "principal_person",
+            "permitted_scope",
+            "valid_until",
+            "issuing_authority",
+            "review_hint",
+        ]
+    return [
+        "name",
+        "role",
+        "certificate_number",
+        "company_name",
+        "valid_until",
+        "attendance_status",
+        "review_hint",
+    ]
+
+
+def postprocess(
+    source_markdown: Path,
+    certificate_type: str = "auto",
+    metadata: dict[str, str] | None = None,
+) -> PostprocessArtifact:
     if not source_markdown.exists():
         raise FileNotFoundError(f"Source markdown not found: {source_markdown}")
     output_dir = source_markdown.parent / "postprocessed"
     output_dir.mkdir(parents=True, exist_ok=True)
     raw_text = source_markdown.read_text(encoding="utf-8")
     cleaned_text = normalize_text(raw_text)
-    fields, warnings = extract_business_license_fields(cleaned_text)
+    fields, warnings = extract_certificate_fields(cleaned_text, certificate_type)
+    metadata = clean_metadata(metadata or {})
+    output_prefix = CERTIFICATE_OUTPUT_PREFIX[fields["certificate_type"]]
 
     cleaned_markdown = output_dir / "cleaned.md"
-    ingest_markdown = output_dir / "business-license-ingest.md"
-    fields_json = output_dir / "business-license-fields.json"
-    fields_csv = output_dir / "business-license-fields.csv"
+    ingest_markdown = output_dir / f"{output_prefix}-ingest.md"
+    fields_json = output_dir / f"{output_prefix}-fields.json"
+    fields_csv = output_dir / f"{output_prefix}-fields.csv"
     report_markdown = output_dir / "postprocess-report.md"
 
     cleaned_markdown.write_text(cleaned_text, encoding="utf-8")
-    fields_json.write_text(json.dumps(fields, ensure_ascii=False, indent=2), encoding="utf-8")
-    write_csv(fields_csv, fields)
-    write_ingest_markdown(ingest_markdown, source_markdown, fields, cleaned_text, warnings)
+    fields_json.write_text(
+        json.dumps({"metadata": metadata, "fields": fields}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    write_csv(fields_csv, {**{f"metadata.{key}": value for key, value in metadata.items()}, **fields})
+    write_ingest_markdown(ingest_markdown, source_markdown, fields, metadata, cleaned_text, warnings)
 
     artifact = PostprocessArtifact(
         source_markdown=source_markdown,
@@ -279,6 +499,7 @@ def postprocess(source_markdown: Path) -> PostprocessArtifact:
         report_markdown=report_markdown,
         certificate_type=fields["certificate_type"],
         extracted_fields=fields,
+        metadata=metadata,
         warnings=warnings,
     )
     write_report(report_markdown, artifact)
@@ -299,10 +520,17 @@ def write_index(artifact: PostprocessArtifact, uploads: list[dict[str, str]]) ->
         "fields_json": str(artifact.fields_json),
         "fields_csv": str(artifact.fields_csv),
         "report_markdown": str(artifact.report_markdown),
+        "metadata": artifact.metadata,
         "warnings": artifact.warnings,
     }
     payload.setdefault("artifacts", []).append(row)
     payload.setdefault("uploads", []).extend(uploads)
+    payload["artifacts"] = [item for item in payload["artifacts"] if Path(item.get("source_markdown", "")).exists()]
+    payload["uploads"] = [
+        item
+        for item in payload["uploads"]
+        if Path(item.get("source_markdown", "")).exists() and Path(item.get("ingest_markdown", "")).exists()
+    ]
     payload["artifacts"] = dedupe_rows(payload["artifacts"], ["source_markdown", "ingest_markdown"])
     payload["uploads"] = dedupe_rows(payload["uploads"], ["source_markdown", "ingest_markdown", "status"])
     POSTPROCESS_INDEX.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -313,6 +541,27 @@ def dedupe_rows(rows: list[dict[str, Any]], keys: list[str]) -> list[dict[str, A
     for row in rows:
         deduped[tuple(row.get(key) for key in keys)] = row
     return list(deduped.values())
+
+
+def clean_metadata(metadata: dict[str, str]) -> dict[str, str]:
+    return {key: value for key, value in metadata.items() if value}
+
+
+def metadata_from_args(args: argparse.Namespace) -> dict[str, str]:
+    return clean_metadata(
+        {
+            "organization_id": args.organization_id,
+            "project_id": args.project_id,
+            "project_name": args.project_name,
+            "contract_package_id": args.contract_package_id,
+            "team_id": args.team_id,
+            "team_name": args.team_name,
+            "review_task_id": args.review_task_id,
+            "document_type": args.document_type,
+            "source_object_type": "ocr_certificate",
+            "source_file_path": args.source_file_path,
+        }
+    )
 
 
 def upload_to_maxkb(args: argparse.Namespace, artifact: PostprocessArtifact) -> list[dict[str, str]]:
@@ -336,7 +585,21 @@ def upload_to_maxkb(args: argparse.Namespace, artifact: PostprocessArtifact) -> 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Post-process OCR Markdown into structured certificate evidence.")
     parser.add_argument("--source-markdown", type=Path, default=None)
+    parser.add_argument(
+        "--certificate-type",
+        choices=["auto", "business_license", "safety_production_license", "personnel_certificate"],
+        default="auto",
+    )
     parser.add_argument("--upload-to-maxkb", action="store_true")
+    parser.add_argument("--organization-id", default="")
+    parser.add_argument("--project-id", default="")
+    parser.add_argument("--project-name", default="")
+    parser.add_argument("--contract-package-id", default="")
+    parser.add_argument("--team-id", default="")
+    parser.add_argument("--team-name", default="")
+    parser.add_argument("--review-task-id", default="")
+    parser.add_argument("--document-type", default="")
+    parser.add_argument("--source-file-path", default="")
     parser.add_argument("--maxkb-base-url", default=DEFAULT_BASE_URL)
     parser.add_argument("--workspace-id", default=DEFAULT_WORKSPACE_ID)
     parser.add_argument("--maxkb-username", default="admin")
@@ -348,7 +611,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     source = args.source_markdown or latest_ocr_markdown()
-    artifact = postprocess(source)
+    artifact = postprocess(source, args.certificate_type, metadata_from_args(args))
     uploads = upload_to_maxkb(args, artifact) if args.upload_to_maxkb else []
     write_index(artifact, uploads)
     print(f"OCR postprocess report written: {artifact.report_markdown}")

@@ -199,26 +199,122 @@ python docs\construction-supervision-local-validation\scripts\postprocess_ocr_do
   --source-markdown "D:\path\ocr-output\combined.md"
 ```
 
+脚本默认使用 `--certificate-type auto` 自动识别证照类型。自动识别不足时可以显式指定：
+
+```powershell
+python docs\construction-supervision-local-validation\scripts\postprocess_ocr_document.py `
+  --source-markdown "D:\path\ocr-output\combined.md" `
+  --certificate-type safety_production_license
+
+python docs\construction-supervision-local-validation\scripts\postprocess_ocr_document.py `
+  --source-markdown "D:\path\ocr-output\combined.md" `
+  --certificate-type personnel_certificate
+```
+
 如果要把结构化后的 Markdown 上传 MaxKB：
 
 ```powershell
 python docs\construction-supervision-local-validation\scripts\postprocess_ocr_document.py `
   --source-markdown "D:\path\ocr-output\combined.md" `
+  --project-id "project-njdl-jd-a1" `
+  --team-id "team-lj-01" `
+  --review-task-id "opening-condition-lj01" `
+  --document-type "business_license" `
   --upload-to-maxkb
 ```
 
 脚本会生成：
 
 - `postprocessed/cleaned.md`
-- `postprocessed/business-license-fields.json`
-- `postprocessed/business-license-fields.csv`
-- `postprocessed/business-license-ingest.md`
+- `postprocessed/<certificate-type>-fields.json`
+- `postprocessed/<certificate-type>-fields.csv`
+- `postprocessed/<certificate-type>-ingest.md`
 - `postprocessed/postprocess-report.md`
 - `docs/simulated-pilot-dataset/NJDL-JD-A1/00_manifest/paddleocr-vl-postprocess-result.json`
 
-`business-license-ingest.md` 是推荐入库文件；它保留结构化字段、经营范围摘录、后处理告警和清洗后 OCR 原文。字段抽取只作为审查证据整理，不替代原件真实性核验。
+当前支持：
+
+- `business_license`：营业执照，抽取统一社会信用代码、企业名称、类型、法定代表人、正照编号、登记日期和经营范围。
+- `safety_production_license`：安全生产许可证，抽取许可证编号、企业名称、主要负责人、许可范围、有效期和发证机关。
+- `personnel_certificate`：人员证书，抽取姓名、岗位、证书编号、发证机关、所属单位、有效期和到岗状态。
+
+`*-ingest.md` 是推荐入库文件；它保留结构化字段、范围摘录、后处理告警和清洗后 OCR 原文。字段抽取只作为审查证据整理，不替代原件真实性核验。
 
 证照编号、统一社会信用代码、人员证书编号等精确字段检索，建议验收时优先使用 `search_mode=keywords`；审查依据、方案条文、措施描述等语义问题再使用 `blend`。本地实测中，营业执照结构化文档在 `keywords` 模式下两个关键查询均排第 1。
+
+推荐入库元数据字段：
+
+| 字段 | 说明 |
+| --- | --- |
+| `organization_id` | 监理/企业组织标识 |
+| `project_id` | 项目标识 |
+| `project_name` | 项目名称 |
+| `contract_package_id` | 合同段标识 |
+| `team_id` | 施工/分包队伍标识 |
+| `team_name` | 施工/分包队伍名称 |
+| `review_task_id` | 审查任务标识，例如 `opening-condition-lj01` |
+| `document_type` | 资料类型，例如 `business_license`、`safety_production_license`、`personnel_certificate` |
+| `source_file_path` | 原始 PDF/图片路径或对象地址 |
+
+这些字段会写入 `*-fields.json`、`*-fields.csv`、`*-ingest.md` 和 `postprocess-report.md`。后续前置服务 API 应把这些字段作为上传请求的一部分。
+
+前置服务接口草案见：
+
+- `docs/construction-supervision-local-validation/preflight-ocr-ingestion-api-contract.md`
+
+### 6.4 独立 FastAPI OCR Worker
+
+当前已将 OCR、证照后处理、MaxKB 入库和命中验收封装为独立 Worker，不修改 MaxKB Django 核心。
+
+前置条件：
+
+- Python 3.11
+- MaxKB 已在 `http://localhost:8080` 运行
+- PaddleOCR 和 MaxKB 凭据通过环境变量注入
+- `PREFLIGHT_ALLOWED_SOURCE_ROOTS` 只配置允许 Worker 读取的资料目录
+
+在仓库根目录启动：
+
+```powershell
+$env:PREFLIGHT_ALLOWED_SOURCE_ROOTS = "D:\AI\知识库"
+$env:PADDLEOCR_TOKEN = "<PaddleOCR Token>"
+$env:MAXKB_PASSWORD = "<MaxKB Password>"
+
+uv run --project services\preflight-ocr-worker `
+  uvicorn preflight_ocr_worker.main:app `
+  --app-dir services\preflight-ocr-worker `
+  --host 127.0.0.1 `
+  --port 8091
+```
+
+服务入口：
+
+- 健康检查：`http://127.0.0.1:8091/health`
+- Swagger：`http://127.0.0.1:8091/docs`
+- OpenAPI：`http://127.0.0.1:8091/openapi.json`
+
+核心接口：
+
+| 方法 | 路径 | 用途 |
+| --- | --- | --- |
+| `POST` | `/api/preflight/ocr-ingestions` | 注册资料并启动 OCR |
+| `GET` | `/api/preflight/ocr-ingestions/{ingestionId}` | 查询处理状态和安全结果 |
+| `POST` | `/api/preflight/ocr-ingestions/{ingestionId}/postprocess` | 重新执行证照后处理 |
+| `POST` | `/api/preflight/ocr-ingestions/{ingestionId}/ingest-to-knowledge` | 人工确认后上传 MaxKB |
+| `POST` | `/api/preflight/ocr-ingestions/{ingestionId}/retrieval-check` | 执行精确字段命中验收 |
+
+`PADDLEOCR_TOKEN` 或 `MAXKB_PASSWORD` 未设置时，服务仍可启动用于检查，但 `/health` 返回 `degraded`，
+对应 provider 操作会失败并记录安全错误摘要。Worker 不会在 API 响应中返回 provider token、密码或内部
+`resolved_source` 路径。
+
+本地验证：
+
+```powershell
+uv run --project services\preflight-ocr-worker --extra test pytest
+```
+
+当前版本仍是单机原型：进程内 BackgroundTasks + 原子 JSON 状态文件。进入 Linux 多实例部署前，再替换为
+PostgreSQL、Redis/Celery 和对象存储；API schema 与状态语义保持不变。
 
 ## 7. 验收问题
 

@@ -1,4 +1,14 @@
 ﻿field,value
+metadata.organization_id,org-supervision-demo
+metadata.project_id,project-njdl-jd-a1
+metadata.project_name,南江至东岭高速公路改扩建工程
+metadata.contract_package_id,contract-jd-a1
+metadata.team_id,team-lj-01
+metadata.team_name,LJ-01 路基土石方分包作业队
+metadata.review_task_id,opening-condition-lj01
+metadata.document_type,business_license
+metadata.source_object_type,ocr_certificate
+metadata.source_file_path,D:\AI\知识库\开工条件核查\条件核查(1)\人员-营业执照.pdf
 certificate_type,business_license
 unified_social_credit_code,91310115515002x94
 license_copy_type,副本

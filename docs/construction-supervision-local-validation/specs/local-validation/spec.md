@@ -111,10 +111,23 @@ The local pilot SHALL provide a PaddleOCR-VL based ingestion bridge for scanned 
 
 #### Scenario: OCR certificate output is post-processed
 
-- **WHEN** OCR markdown contains a supported certificate type such as a business license
+- **WHEN** OCR markdown contains a supported certificate type such as a business license, safety production license, or personnel certificate
 - **THEN** the local pilot can generate cleaned Markdown, structured JSON, structured CSV, and an ingestion Markdown file
 - **AND** repeated OCR noise, image HTML, and overlong repeated phrases are reduced before knowledge-base ingestion
 - **AND** the original OCR markdown remains archived for traceability
+
+#### Scenario: OCR certificate metadata is preserved
+
+- **WHEN** OCR certificate output is post-processed for knowledge-base ingestion
+- **THEN** the operator can provide organization, project, contract package, team, review task, document type, and source file metadata
+- **AND** the generated JSON, CSV, report, and ingestion Markdown include that metadata
+- **AND** the metadata supports project-team-review-task filtering without replacing the original evidence file
+
+#### Scenario: Certificate type is detected or selected
+
+- **WHEN** OCR markdown is post-processed
+- **THEN** the operator can use automatic certificate detection
+- **AND** the operator can explicitly select `business_license`, `safety_production_license`, or `personnel_certificate` when automatic detection is insufficient
 
 #### Scenario: Business license fields are extracted
 
@@ -123,10 +136,25 @@ The local pilot SHALL provide a PaddleOCR-VL based ingestion bridge for scanned 
 - **AND** missing key fields are recorded as warnings for human review
 - **AND** the extracted fields are treated as review evidence, not as official authenticity verification
 
+#### Scenario: Safety production license fields are extracted
+
+- **WHEN** OCR markdown is recognized as a safety production license
+- **THEN** the postprocessor extracts review-supporting fields such as license number, company name, principal person, permitted scope, validity period, and issuing authority
+- **AND** missing key fields are recorded as warnings for human review
+- **AND** the extracted fields are treated as review evidence, not as official authenticity verification
+
+#### Scenario: Personnel certificate fields are extracted
+
+- **WHEN** OCR markdown is recognized as a personnel certificate
+- **THEN** the postprocessor extracts review-supporting fields such as name, role, certificate number, issuing authority, company name, validity period, and attendance status
+- **AND** missing key fields are recorded as warnings for human review
+- **AND** the extracted fields are treated as review evidence, not as official authenticity verification
+
 #### Scenario: OCR markdown can be uploaded to MaxKB
 
-- **WHEN** OCR markdown is generated and the operator enables MaxKB upload
-- **THEN** the combined Markdown file is uploaded through the text document flow
+- **WHEN** OCR markdown is post-processed and the operator enables MaxKB upload
+- **THEN** the certificate-specific `*-ingest.md` file is uploaded through the text document flow
+- **AND** raw combined OCR Markdown remains archived but is not uploaded as the preferred searchable document
 - **AND** upload results include the original source path and derived markdown path
 
 #### Scenario: OCR upload retrieval is smoke-tested
