@@ -10,12 +10,12 @@
 
 ## Task Group B — Data Pack Generation
 
-- [ ] B1 创建 `docs/simulated-pilot-dataset/NJDL-JD-A1/` 资料包目录。
+- [x] B1 创建 `docs/simulated-pilot-dataset/NJDL-JD-A1/` 资料包目录。
 - [x] B2 生成 `00_manifest/dataset-manifest.yaml`、`.json`、`.csv`、`.xlsx`。
 - [x] B3 生成项目依据、合同监理、队伍开工条件、施工方案、历史样例等 24 份业务模拟资料。
 - [x] B4 生成 5 份官方规范来源摘要文件，不导入来源不明全文。
 - [x] B5 为每份资料写入 manifest 条目和核心 metadata。
-- [ ] B6 对资料包做一次命名、来源、审查任务覆盖检查。
+- [x] B6 对资料包做一次命名、来源、审查任务覆盖检查。
 
 ## Task Group C — Local MaxKB Validation
 

@@ -1,0 +1,40 @@
+{
+  "dataset_id": "dataset-njdl-jd-a1-pilot",
+  "dataset_name": "南江至东岭高速公路改扩建工程 JD-A1 监理审查模拟资料包",
+  "root": "D:\\AI\\AIcode\\MaxKB\\docs\\simulated-pilot-dataset\\NJDL-JD-A1",
+  "document_count": 29,
+  "format_counts": {
+    "docx": 24,
+    "xlsx": 5
+  },
+  "review_task_counts": {
+    "project-context": 6,
+    "opening-condition-lj01": 14,
+    "construction-plan-lj01": 9
+  },
+  "document_type_counts": {
+    "project_basis": 1,
+    "contract_basis": 1,
+    "supervision_basis": 1,
+    "review_rule": 2,
+    "archive_rule": 1,
+    "subcontract_scope": 1,
+    "team_qualification": 1,
+    "personnel": 3,
+    "opening_application": 1,
+    "opening_attachment": 1,
+    "safety_disclosure": 1,
+    "site_preparation": 1,
+    "construction_plan": 1,
+    "material_test": 1,
+    "quality_plan": 1,
+    "safety_plan": 1,
+    "review_example": 2,
+    "official_source_summary": 5,
+    "equipment": 1,
+    "calibration": 1,
+    "safety_training": 1
+  },
+  "errors": [],
+  "warnings": []
+}

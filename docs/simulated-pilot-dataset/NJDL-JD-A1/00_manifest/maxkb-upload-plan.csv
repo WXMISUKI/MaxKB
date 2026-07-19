@@ -1,0 +1,30 @@
+﻿upload_order,upload_group,document_id,relative_path,file_format,document_type,review_task_id
+1,01 项目依据,DOC-001,01_project_basis/01_项目概况与合同段划分说明.docx,docx,project_basis,project-context
+2,02 合同与监理依据,DOC-002,02_contract_and_supervision/02_JD-A1合同段主要合同条款摘编.docx,docx,contract_basis,project-context
+3,02 合同与监理依据,DOC-003,02_contract_and_supervision/03_JL-01监理规划摘编.docx,docx,supervision_basis,project-context
+4,02 合同与监理依据,DOC-004,02_contract_and_supervision/04_开工条件审查实施细则.docx,docx,review_rule,opening-condition-lj01
+5,02 合同与监理依据,DOC-005,02_contract_and_supervision/05_施工方案审查实施细则.docx,docx,review_rule,construction-plan-lj01
+6,02 合同与监理依据,DOC-006,02_contract_and_supervision/06_项目资料命名与归档规则.docx,docx,archive_rule,project-context
+7,03 LJ-01 开工条件资料,DOC-007,03_team_lj01_opening_condition/07_LJ-01分包合同范围说明.docx,docx,subcontract_scope,opening-condition-lj01
+8,03 LJ-01 开工条件资料,DOC-008,03_team_lj01_opening_condition/08_LJ-01企业资质与安全生产许可证摘录.docx,docx,team_qualification,opening-condition-lj01
+9,03 LJ-01 开工条件资料,DOC-009,03_team_lj01_opening_condition/09_LJ-01项目负责人任命书.docx,docx,personnel,opening-condition-lj01
+10,03 LJ-01 开工条件资料,DOC-014,03_team_lj01_opening_condition/14_LJ-01开工申请表.docx,docx,opening_application,opening-condition-lj01
+11,03 LJ-01 开工条件资料,DOC-015,03_team_lj01_opening_condition/15_LJ-01施工组织与人员进场报审表.docx,docx,opening_attachment,opening-condition-lj01
+12,03 LJ-01 开工条件资料,DOC-016,03_team_lj01_opening_condition/16_LJ-01安全技术交底记录.docx,docx,safety_disclosure,opening-condition-lj01
+13,03 LJ-01 开工条件资料,DOC-018,03_team_lj01_opening_condition/18_LJ-01临时排水与便道准备情况说明.docx,docx,site_preparation,opening-condition-lj01
+14,04 LJ-01 施工方案资料,DOC-019,04_team_lj01_construction_plan/19_K12-K18路基填筑施工方案.docx,docx,construction_plan,construction-plan-lj01
+15,04 LJ-01 施工方案资料,DOC-020,04_team_lj01_construction_plan/20_路基填料来源与试验报告摘要.docx,docx,material_test,construction-plan-lj01
+16,04 LJ-01 施工方案资料,DOC-021,04_team_lj01_construction_plan/21_路基填筑质量控制与检测计划.docx,docx,quality_plan,construction-plan-lj01
+17,04 LJ-01 施工方案资料,DOC-022,04_team_lj01_construction_plan/22_路基施工安全风险辨识与控制措施.docx,docx,safety_plan,construction-plan-lj01
+18,05 历史审查样例,DOC-023,05_review_examples/23_历史样例_开工条件审查通过案例.docx,docx,review_example,opening-condition-lj01
+19,05 历史审查样例,DOC-024,05_review_examples/24_历史样例_施工方案审查退回修改案例.docx,docx,review_example,construction-plan-lj01
+20,06 官方规范摘要,SRC-001,06_source_norms/SRC-001_公路工程施工监理规范_开工与方案审查摘要.docx,docx,official_source_summary,project-context
+21,06 官方规范摘要,SRC-002,06_source_norms/SRC-002_质量检验评定标准_土建工程评定框架摘要.docx,docx,official_source_summary,construction-plan-lj01
+22,06 官方规范摘要,SRC-003,06_source_norms/SRC-003_施工安全技术规范_风险控制摘要.docx,docx,official_source_summary,construction-plan-lj01
+23,06 官方规范摘要,SRC-004,06_source_norms/SRC-004_路基施工技术规范_填筑控制摘要.docx,docx,official_source_summary,construction-plan-lj01
+24,06 官方规范摘要,SRC-006,06_source_norms/SRC-006_标准施工招标文件_合同与技术规范摘要.docx,docx,official_source_summary,project-context
+25,03 LJ-01 开工条件资料,DOC-010,03_team_lj01_opening_condition/10_LJ-01安全员与质检员证书清单.xlsx,xlsx,personnel,opening-condition-lj01
+26,03 LJ-01 开工条件资料,DOC-011,03_team_lj01_opening_condition/11_LJ-01特种作业人员清单.xlsx,xlsx,personnel,opening-condition-lj01
+27,03 LJ-01 开工条件资料,DOC-012,03_team_lj01_opening_condition/12_LJ-01主要机械设备进场清单.xlsx,xlsx,equipment,opening-condition-lj01
+28,03 LJ-01 开工条件资料,DOC-013,03_team_lj01_opening_condition/13_LJ-01测量与试验仪器校验证明清单.xlsx,xlsx,calibration,opening-condition-lj01
+29,03 LJ-01 开工条件资料,DOC-017,03_team_lj01_opening_condition/17_LJ-01三级安全教育记录.xlsx,xlsx,safety_training,opening-condition-lj01

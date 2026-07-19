@@ -168,6 +168,12 @@ MaxKB / 平台侧是正式事实 owner：
 
 ## 8. 近期开发任务方向
 
+下一阶段推荐优先级：
+
+> 先完成本地 MaxKB 知识库闭环验收，再决定是否进行源码级 metadata 扩展。
+
+对应规格、脚本和 runbook 见 `construction-supervision-local-validation/`。该阶段会基于已生成的模拟资料包输出上传计划、审查问题集和验证报告，帮助判断现有 MaxKB 能力是否足够支撑第一版试点。
+
 ### 阶段 A：本地知识库闭环
 
 - 启动 MaxKB

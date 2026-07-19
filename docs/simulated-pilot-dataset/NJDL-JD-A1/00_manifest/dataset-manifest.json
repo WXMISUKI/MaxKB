@@ -36,9 +36,10 @@
       "document_id": "DOC-001",
       "document_type": "project_basis",
       "review_task_id": "project-context",
+      "source_object_id": "source-doc-001",
       "relative_path": "01_project_basis/01_项目概况与合同段划分说明.docx",
       "file_format": "docx",
-      "content_hash": "2d916bed5c2e14a47ebc5ad79f09c865ed2dcc5ce5a00dce5d496a88b7d0c6a1",
+      "content_hash": "609e27af585b177b9fa08d913f52f38c7d82683bc9b7de5883ad854d2ebc1fc6",
       "indexed_at": ""
     },
     {
@@ -58,9 +59,10 @@
       "document_id": "DOC-002",
       "document_type": "contract_basis",
       "review_task_id": "project-context",
+      "source_object_id": "source-doc-002",
       "relative_path": "02_contract_and_supervision/02_JD-A1合同段主要合同条款摘编.docx",
       "file_format": "docx",
-      "content_hash": "a404729f49af2f337c542aebfff8f46d3b4f46f873b6484cc61245fbf6dbd265",
+      "content_hash": "968de29fdbecddcb75979959ee703c0e3fd49b838d43220734a14057308abc83",
       "indexed_at": ""
     },
     {
@@ -80,9 +82,10 @@
       "document_id": "DOC-003",
       "document_type": "supervision_basis",
       "review_task_id": "project-context",
+      "source_object_id": "source-doc-003",
       "relative_path": "02_contract_and_supervision/03_JL-01监理规划摘编.docx",
       "file_format": "docx",
-      "content_hash": "cfeab3de2627494c542442a064b715f406ec2da7d69acbd6c2d3ee4f69166d5e",
+      "content_hash": "e5cb0e8e2335a846a15c55b50f8db3682379b2b142ed0f4e9efcb403ad39a648",
       "indexed_at": ""
     },
     {
@@ -102,9 +105,10 @@
       "document_id": "DOC-004",
       "document_type": "review_rule",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-004",
       "relative_path": "02_contract_and_supervision/04_开工条件审查实施细则.docx",
       "file_format": "docx",
-      "content_hash": "8ff9aa8ca50b88b5f675a4909d009e8a0b663478b40fe124d027532c2b12df68",
+      "content_hash": "e44ce1571ece945b346ae4153d4af051a08418f9c1805bfdeb3f9539f75de8a7",
       "indexed_at": ""
     },
     {
@@ -124,9 +128,10 @@
       "document_id": "DOC-005",
       "document_type": "review_rule",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-doc-005",
       "relative_path": "02_contract_and_supervision/05_施工方案审查实施细则.docx",
       "file_format": "docx",
-      "content_hash": "30cf27cc5bc26147712aa5ee72e580c59d10d44e3d5a71b5234a31c54fbfd4df",
+      "content_hash": "3cd1e9fda89d2b59cbfececdcb09ef7721ba041e3cac9a40175f071c12580696",
       "indexed_at": ""
     },
     {
@@ -146,9 +151,10 @@
       "document_id": "DOC-006",
       "document_type": "archive_rule",
       "review_task_id": "project-context",
+      "source_object_id": "source-doc-006",
       "relative_path": "02_contract_and_supervision/06_项目资料命名与归档规则.docx",
       "file_format": "docx",
-      "content_hash": "e9fe6ea4c497f0e4cf17a0dff9e08710f6b3df72a06548a4366777ada0cce9ad",
+      "content_hash": "d6e3301ef0b4cd14204cee7d9eecfaff3c4d8c6a7498787f65b7b5b304f747ef",
       "indexed_at": ""
     },
     {
@@ -168,9 +174,10 @@
       "document_id": "DOC-007",
       "document_type": "subcontract_scope",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-007",
       "relative_path": "03_team_lj01_opening_condition/07_LJ-01分包合同范围说明.docx",
       "file_format": "docx",
-      "content_hash": "3cbeff534ba4483e0ec94d018d3e193daa7bf9a2b5a84df186ac96e4482c03d5",
+      "content_hash": "fb3ccf8c01540e451ae1e10761ae5b9d15572e1215051672d12167cffe29ba47",
       "indexed_at": ""
     },
     {
@@ -190,9 +197,10 @@
       "document_id": "DOC-008",
       "document_type": "team_qualification",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-008",
       "relative_path": "03_team_lj01_opening_condition/08_LJ-01企业资质与安全生产许可证摘录.docx",
       "file_format": "docx",
-      "content_hash": "d564345790fc0e9416cb95839d2c4722f8d26c8ca041b34884e49b89b0073d92",
+      "content_hash": "ae1b3bdf8d629a56ec63ceb26c91d9e04afdd0bcfccc13c1cc0151b207afd7d4",
       "indexed_at": ""
     },
     {
@@ -212,9 +220,10 @@
       "document_id": "DOC-009",
       "document_type": "personnel",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-009",
       "relative_path": "03_team_lj01_opening_condition/09_LJ-01项目负责人任命书.docx",
       "file_format": "docx",
-      "content_hash": "b7537f0c90ef53f1ea41dc917e70d5f54a8786194f98795cacd3383edda888ac",
+      "content_hash": "e71e304ed5d8366c89156d3a0f6335a6a5cd1a4126b74abe1aa74901e78ede8f",
       "indexed_at": ""
     },
     {
@@ -234,9 +243,10 @@
       "document_id": "DOC-014",
       "document_type": "opening_application",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-014",
       "relative_path": "03_team_lj01_opening_condition/14_LJ-01开工申请表.docx",
       "file_format": "docx",
-      "content_hash": "9ba46c27d9f7e7de8a380f1c23f21e75da92b2425b717a7d51a7cbe84877139f",
+      "content_hash": "1886dbfaf196847f308990a8eb2beb23e2167b6c45b7d8653aeed2cb6c954720",
       "indexed_at": ""
     },
     {
@@ -256,9 +266,10 @@
       "document_id": "DOC-015",
       "document_type": "opening_attachment",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-015",
       "relative_path": "03_team_lj01_opening_condition/15_LJ-01施工组织与人员进场报审表.docx",
       "file_format": "docx",
-      "content_hash": "d375e284c8fb86f9525a65fccb9f9871b322ca1219d80c6e2f59d3284c810c2e",
+      "content_hash": "1d28e2a92ef3812cf41c3a26cb03ec9ecbdfa47d18db6df41eba88c3a07cd8d4",
       "indexed_at": ""
     },
     {
@@ -278,9 +289,10 @@
       "document_id": "DOC-016",
       "document_type": "safety_disclosure",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-016",
       "relative_path": "03_team_lj01_opening_condition/16_LJ-01安全技术交底记录.docx",
       "file_format": "docx",
-      "content_hash": "55dfc2e49b7292c553e498b5942017052d9126de2a8a075070e23f04f991a398",
+      "content_hash": "40f8566076a1753b5edc6ed827b0b227922e8f89169c027431d9feb9fc131ceb",
       "indexed_at": ""
     },
     {
@@ -300,9 +312,10 @@
       "document_id": "DOC-018",
       "document_type": "site_preparation",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-018",
       "relative_path": "03_team_lj01_opening_condition/18_LJ-01临时排水与便道准备情况说明.docx",
       "file_format": "docx",
-      "content_hash": "b8a4ab459caa826862aa331088de8ccfd6c41b6f366740e8f6c24460d1401ab7",
+      "content_hash": "6bdc7532ba1d786541f2ebd99779e82b05899c331fe4f7c594cc792d0d1085ea",
       "indexed_at": ""
     },
     {
@@ -322,9 +335,10 @@
       "document_id": "DOC-019",
       "document_type": "construction_plan",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-doc-019",
       "relative_path": "04_team_lj01_construction_plan/19_K12-K18路基填筑施工方案.docx",
       "file_format": "docx",
-      "content_hash": "6815cc85488da41e44e8b9de2e8d06e1e5717d94402f2dd33d075a1223825e40",
+      "content_hash": "fb95b549240e0eb071ac4fb2da7d52ec56b906bfd9db1357dda6291e802456f5",
       "indexed_at": ""
     },
     {
@@ -344,9 +358,10 @@
       "document_id": "DOC-020",
       "document_type": "material_test",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-doc-020",
       "relative_path": "04_team_lj01_construction_plan/20_路基填料来源与试验报告摘要.docx",
       "file_format": "docx",
-      "content_hash": "362bac467ec76adb4c655bc47136eeb3e93b13e64d9033e12045a0d3117b2daa",
+      "content_hash": "da897158d15135fc805135e6aebb84b5afb37912a6dac1b325ba97dcd82ba569",
       "indexed_at": ""
     },
     {
@@ -366,9 +381,10 @@
       "document_id": "DOC-021",
       "document_type": "quality_plan",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-doc-021",
       "relative_path": "04_team_lj01_construction_plan/21_路基填筑质量控制与检测计划.docx",
       "file_format": "docx",
-      "content_hash": "234f4aad65fe0ed4d15a7b49a2be9cd1184ec943c27650259293f64657c068b6",
+      "content_hash": "3f8adf1301fe6f4c47b5007c2998f2907d44c3876b9a4f63c0768e8acb5a751b",
       "indexed_at": ""
     },
     {
@@ -388,9 +404,10 @@
       "document_id": "DOC-022",
       "document_type": "safety_plan",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-doc-022",
       "relative_path": "04_team_lj01_construction_plan/22_路基施工安全风险辨识与控制措施.docx",
       "file_format": "docx",
-      "content_hash": "104fc5f67b154eb93758f87f5bdd4e0900b5b7ada5102431ed71db27e97d39f2",
+      "content_hash": "c1f9b153a7b4bd7c86bde5bd73221e81eca9d31d93fcbe24dc9950b89f09c2ec",
       "indexed_at": ""
     },
     {
@@ -410,9 +427,10 @@
       "document_id": "DOC-023",
       "document_type": "review_example",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-023",
       "relative_path": "05_review_examples/23_历史样例_开工条件审查通过案例.docx",
       "file_format": "docx",
-      "content_hash": "ea3a4f2f8f7bd803ce2298d85303c35f980e61690b625b405f5029f7cc525fb6",
+      "content_hash": "911615287d6d98a6eae4caaa3f50d38257a6a04eaa4205626e06bbe8c1cd841e",
       "indexed_at": ""
     },
     {
@@ -432,9 +450,10 @@
       "document_id": "DOC-024",
       "document_type": "review_example",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-doc-024",
       "relative_path": "05_review_examples/24_历史样例_施工方案审查退回修改案例.docx",
       "file_format": "docx",
-      "content_hash": "a02483fd448bbfaaf21db9259310a132e1c9735e09e9f459c9712f09fc7a44f0",
+      "content_hash": "4a73bfcf8f3c6f1e00d08d2c94fa7119dedf87f18209018da81d67c9832e5e5d",
       "indexed_at": ""
     },
     {
@@ -454,9 +473,10 @@
       "document_id": "SRC-001",
       "document_type": "official_source_summary",
       "review_task_id": "project-context",
+      "source_object_id": "source-src-001",
       "relative_path": "06_source_norms/SRC-001_公路工程施工监理规范_开工与方案审查摘要.docx",
       "file_format": "docx",
-      "content_hash": "895c6b8625b09b8ecfd44bb33da9d2af31deb7f8cf487430e4053af161c0f5be",
+      "content_hash": "f1303b92a55f16ac16bd349b63d4ee5b327de3e1172743257cc06191e15c2a5d",
       "indexed_at": ""
     },
     {
@@ -476,9 +496,10 @@
       "document_id": "SRC-002",
       "document_type": "official_source_summary",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-src-002",
       "relative_path": "06_source_norms/SRC-002_质量检验评定标准_土建工程评定框架摘要.docx",
       "file_format": "docx",
-      "content_hash": "c34dc72cc70bd6dd765c2af14b1e97ec248072b5ffc5bf6dbb2b474045f18cd7",
+      "content_hash": "b2c67727e77cfeaf3d23470e8dfdf96482da911015734f138e5e77652592e43f",
       "indexed_at": ""
     },
     {
@@ -498,9 +519,10 @@
       "document_id": "SRC-003",
       "document_type": "official_source_summary",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-src-003",
       "relative_path": "06_source_norms/SRC-003_施工安全技术规范_风险控制摘要.docx",
       "file_format": "docx",
-      "content_hash": "800a3d3517a1984ff15039b864f2bd688f993b52e47db3dd2848ad7c82177d97",
+      "content_hash": "5beb5a6686343cb477591630ece9d3c0f0f668dbdbaa006df679337ad28e9f5a",
       "indexed_at": ""
     },
     {
@@ -520,9 +542,10 @@
       "document_id": "SRC-004",
       "document_type": "official_source_summary",
       "review_task_id": "construction-plan-lj01",
+      "source_object_id": "source-src-004",
       "relative_path": "06_source_norms/SRC-004_路基施工技术规范_填筑控制摘要.docx",
       "file_format": "docx",
-      "content_hash": "629f1f25b8fad48bd5b829729d2db604e0122cd6454c056c16d2a69eb0c1817d",
+      "content_hash": "ec5786411a9f16ad997de30e90bdc18c8e27c41ec9a3e3c621e4a9ea7510194c",
       "indexed_at": ""
     },
     {
@@ -542,9 +565,10 @@
       "document_id": "SRC-006",
       "document_type": "official_source_summary",
       "review_task_id": "project-context",
+      "source_object_id": "source-src-006",
       "relative_path": "06_source_norms/SRC-006_标准施工招标文件_合同与技术规范摘要.docx",
       "file_format": "docx",
-      "content_hash": "1ba9958e2204731521c7007a4c9e078f87aee35e3632d487d9ef90ff23fecc77",
+      "content_hash": "fa33019d4088d06db35475713f03631ce277f957644d45d4bf13cbade0689dd8",
       "indexed_at": ""
     },
     {
@@ -564,9 +588,10 @@
       "document_id": "DOC-010",
       "document_type": "personnel",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-010",
       "relative_path": "03_team_lj01_opening_condition/10_LJ-01安全员与质检员证书清单.xlsx",
       "file_format": "xlsx",
-      "content_hash": "2f4d8af689133505dad6877e4fe4d985a8353609489b6804ff022e373c8b8975",
+      "content_hash": "04c5cb2dc06e4eb0d5f76f247c7dd7a634547ce31c48627c13b44c9c42f1a85f",
       "indexed_at": ""
     },
     {
@@ -586,9 +611,10 @@
       "document_id": "DOC-011",
       "document_type": "personnel",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-011",
       "relative_path": "03_team_lj01_opening_condition/11_LJ-01特种作业人员清单.xlsx",
       "file_format": "xlsx",
-      "content_hash": "53f792dfb164f4af3c5fc432eca426910e7e62d04787aa288cbd2cbdba266863",
+      "content_hash": "0ade571813fb4a418bfb2b5d6462079f72dd9736695174990c840f04e5c31ac0",
       "indexed_at": ""
     },
     {
@@ -608,9 +634,10 @@
       "document_id": "DOC-012",
       "document_type": "equipment",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-012",
       "relative_path": "03_team_lj01_opening_condition/12_LJ-01主要机械设备进场清单.xlsx",
       "file_format": "xlsx",
-      "content_hash": "9458cff6e0189c40f86043294b4666d2da55e3a0ab7ceda7a37e96d501acb6df",
+      "content_hash": "1dee0beab66677b57c4cd1168bf52e5ede6b2c6ac296273d048d297095712e74",
       "indexed_at": ""
     },
     {
@@ -630,9 +657,10 @@
       "document_id": "DOC-013",
       "document_type": "calibration",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-013",
       "relative_path": "03_team_lj01_opening_condition/13_LJ-01测量与试验仪器校验证明清单.xlsx",
       "file_format": "xlsx",
-      "content_hash": "01d69f12d155611579e6ae4b5540ff0c8fca6e41d9122d22319bc9ac4998c345",
+      "content_hash": "87e230025f0cce5f12c13ed204be4daac0f6d3177c2803b747cca31fc9450b99",
       "indexed_at": ""
     },
     {
@@ -652,9 +680,10 @@
       "document_id": "DOC-017",
       "document_type": "safety_training",
       "review_task_id": "opening-condition-lj01",
+      "source_object_id": "source-doc-017",
       "relative_path": "03_team_lj01_opening_condition/17_LJ-01三级安全教育记录.xlsx",
       "file_format": "xlsx",
-      "content_hash": "a55edbe66ac81c52a928202716e71710f4dfbc3c4a8621fd24cf199e99f2365e",
+      "content_hash": "1e8508374d7f64a3fe02e5b485ea8699f44325ab86392fdbee883614ae60a7fe",
       "indexed_at": ""
     }
   ]

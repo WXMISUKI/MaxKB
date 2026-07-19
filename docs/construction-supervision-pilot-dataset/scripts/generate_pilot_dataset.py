@@ -207,6 +207,7 @@ def manifest_entry(path: Path, doc_id: str, document_type: str, review_task_id: 
         "document_id": doc_id,
         "document_type": document_type,
         "review_task_id": review_task_id,
+        "source_object_id": f"source-{doc_id.lower()}",
         "relative_path": str(path.relative_to(ROOT)).replace("\\", "/"),
         "file_format": path.suffix.lstrip("."),
         "content_hash": sha256(path),
