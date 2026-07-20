@@ -2,16 +2,62 @@
 
 ## 推荐主线
 
-下一阶段优先做 **OCR 证照结构化后处理 + 入库验收**。
+下一阶段优先做 **前置平台单项目试点联调**。
 
 原因：
 
-- 真实施工资料中 PDF 扫描件、证照照片、盖章件会高频出现。
-- 前置核查平台最先需要的是“上传后能形成可审查证据”，而不是复杂对话体验。
-- 结构化字段能直接支撑开工条件审查，例如企业资质、人员证书、营业执照、安全生产许可证、设备合格证。
-- 该方向可快速投产，并且不要求先深改 MaxKB 核心。
+- 前置项目文档已经明确 Node BFF / API Gateway 是浏览器侧稳定入口，MaxKB 和 OCR Worker 都是后端 provider。
+- 当前 MaxKB 与 OCR Worker 本地闭环已经可用，下一步价值不在继续局部优化 OCR，而在把项目、任务、证据、知识库绑定和人工决策串成平台闭环。
+- 单项目试点能最快暴露真实联调问题：对象存储引用、幂等键、correlationId、provider refs、readiness 门禁、人工复核和报告归档。
+- 该方向能保持企业级边界：平台拥有事实和状态，外部 provider 只提供能力。
+
+本轮对齐规格已新增：
+
+- `docs/construction-supervision-local-validation/specs/preflight-platform-alignment/spec.md`
 
 ## 大方向排序
+
+1. 前置平台单项目试点联调
+   - 目标：以前置平台 API 为入口，跑通任务初始化、资料包接入、OCR Worker、MaxKB provider、命中验收、人工复核和报告归档的最小链路。
+   - 投产价值：最高。
+   - 当前状态：前置项目已提供架构演进、外部 provider、开工条件试点工作流和 MaxKB provider 对接文档；本项目已生成统一 alignment spec。
+
+2. 平台事实库与 provider refs 持久化
+   - 目标：建立或对齐 `Project`、`ContractPackage`、`Section`、`SubcontractTeam`、`ReviewTask`、`Evidence`、`KnowledgeBinding`、`OcrIngestionLink`、`BasisVersion`、`MasterData`、`HumanDecision`、`ReportAsset`。
+   - 投产价值：高。
+   - 当前状态：已明确不由 MaxKB 或 OCR Worker 承担事实库职责。
+
+3. OCR Worker 服务端联调封装
+   - 目标：前置平台服务端调用 Worker，持久化 `ingestionId`、PaddleOCR `jobId`、MaxKB `providerDocumentId`、retrieval-check 和安全诊断。
+   - 投产价值：高。
+   - 当前状态：Worker 已支持 Bearer 鉴权、幂等创建、correlationId、OCR、后处理、入库和命中验收。
+
+4. MaxKB provider 支持证据展示
+   - 目标：在审查页面展示 MaxKB 命中作为支持性证据，不把命中结果写成正式结论。
+   - 投产价值：高。
+   - 当前状态：已固化 `KNOWLEDGE_PROVIDER=maxkb`、`KnowledgeBinding` 和 safe provider refs 方向。
+
+5. 真实证照回归与资料类型扩展
+   - 目标：用真实安全生产许可证、人员证书和设备合格证/检定证书继续验证 OCR 结构化质量。
+   - 投产价值：中高。
+   - 建议时机：平台联调主链路跑通后持续补强。
+
+6. 审查工作流与生产化队列
+   - 目标：引入持久队列、Python agent service、Dify/RAGFlow 可选编排、报告导出和审计加强。
+   - 投产价值：高，但依赖平台事实库与联调链路稳定。
+   - 建议时机：单项目试点可操作后。
+
+## 原 OCR 主线保留为支撑能力
+
+OCR 证照结构化后处理仍是关键能力，但它现在从“下一阶段主线”降为“平台联调中的支撑任务”。
+
+保留原因：
+
+- 真实施工资料中 PDF 扫描件、证照照片、盖章件会高频出现。
+- 结构化字段能直接支撑开工条件审查，例如企业资质、人员证书、营业执照、安全生产许可证、设备合格证。
+- 该方向不要求深改 MaxKB 核心，适合在联调中持续迭代。
+
+## 原大方向排序记录
 
 1. OCR 证照结构化后处理
    - 目标：把扫描件 OCR 原文转换为清洗 Markdown、结构化 JSON/CSV、推荐入库 Markdown。

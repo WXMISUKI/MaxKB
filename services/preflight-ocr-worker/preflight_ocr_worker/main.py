@@ -11,6 +11,7 @@ from .schemas import (
     CreateIngestionRequest,
     HealthResponse,
     IngestKnowledgeRequest,
+    KnowledgeSearchRequest,
     PostprocessRequest,
     RetrievalCheckRequest,
 )
@@ -66,8 +67,7 @@ def create_app(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-    @app.get("/health", response_model=HealthResponse, response_model_by_alias=True)
-    def health() -> HealthResponse:
+    def health_payload() -> HealthResponse:
         auth_configured = bool(settings.api_key)
         paddle_configured = bool(settings.paddleocr_token)
         maxkb_configured = bool(settings.maxkb_base_url and settings.maxkb_username and settings.maxkb_password)
@@ -113,6 +113,7 @@ def create_app(
                         else "MaxKB credential is not configured."
                     ),
                     "workspaceId": settings.maxkb_workspace_id,
+                    "defaultKnowledgeId": settings.maxkb_default_knowledge_id,
                     "capabilities": {
                         "ingestion": True,
                         "retrieval": True,
@@ -121,6 +122,49 @@ def create_app(
                 },
             },
         )
+
+    @app.get("/health", response_model=HealthResponse, response_model_by_alias=True)
+    def health() -> HealthResponse:
+        return health_payload()
+
+    @app.get("/api/health", response_model=HealthResponse, response_model_by_alias=True)
+    def api_health() -> HealthResponse:
+        return health_payload()
+
+    @app.get("/api/knowledge-base/provider/status", dependencies=[Depends(require_api_key)])
+    def knowledge_provider_status() -> dict:
+        health = health_payload().model_dump(by_alias=True)
+        maxkb = health["providers"]["maxkb"]
+        return {
+            "provider": "maxkb",
+            "enabled": bool(settings.maxkb_base_url),
+            "ready": bool(maxkb["ready"]),
+            "status": maxkb["status"],
+            "workspaceId": settings.maxkb_workspace_id,
+            "defaultKnowledgeId": settings.maxkb_default_knowledge_id,
+            "summary": maxkb["summary"],
+            "capabilities": {
+                "retrieval": True,
+                "retrievalCheck": True,
+                "ingestion": True,
+                "documentStatus": False,
+            },
+        }
+
+    @app.post("/api/knowledge/{knowledge_id}/search", dependencies=[Depends(require_api_key)])
+    def search_knowledge(knowledge_id: str, request: KnowledgeSearchRequest) -> dict:
+        if not settings.maxkb_base_url or not settings.maxkb_username or not settings.maxkb_password:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="MaxKB knowledge provider is not configured.",
+            )
+        try:
+            return public_record(adapters.search_maxkb(knowledge_id, request))
+        except Exception as error:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"MaxKB provider request failed: {type(error).__name__}",
+            ) from error
 
     @app.post(
         "/api/preflight/ocr-ingestions",

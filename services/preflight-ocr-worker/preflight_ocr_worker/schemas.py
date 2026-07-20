@@ -97,6 +97,13 @@ class RetrievalCheckRequest(ApiModel):
     similarity: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
+class KnowledgeSearchRequest(ApiModel):
+    query_text: str = Field(alias="queryText", min_length=1)
+    search_mode: Literal["keywords", "blend", "embedding"] = "blend"
+    top_number: int = Field(default=8, ge=1, le=50)
+    similarity: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
 class HealthResponse(ApiModel):
     service: str
     ready: bool

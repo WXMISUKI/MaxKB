@@ -77,3 +77,30 @@
 - [x] G5 将扩展 metadata 透传到 OCR 后处理产物。
 - [x] G6 新增前置平台调用 OCR Worker 详细说明文档。
 - [x] G7 新增前置平台组织结构与知识库绑定设计文档。
+- [x] G8 新增面向前置平台团队的当前进度与待解决问题交接文档。
+
+## Task Group H — Platform Alignment Spec
+
+- [x] H1 阅读前置项目对接文档：架构演进、外部 provider、单项目试点工作流、MaxKB provider、交接说明。
+- [x] H2 固化平台事实源边界：前置平台拥有业务事实，MaxKB / OCR Worker / Dify / RAGFlow 只提供能力。
+- [x] H3 固化 Node BFF 边界：浏览器只调用前置平台 API，不直连外部 provider 或 Worker。
+- [x] H4 固化 MaxKB provider 边界：只保存 provider refs、安全摘要和支持性召回。
+- [x] H5 固化 OCR Worker 联调边界：服务端调用、Bearer 鉴权、幂等键、correlationId 和安全 provider refs。
+- [x] H6 固化开工条件单项目试点门禁：依据、主数据、资料包、清单、正式匹配、人工复核和报告归档。
+- [x] H7 新增 `preflight-platform-alignment` 规格，作为前置平台联调与后续开发的统一约束。
+
+## Task Group I — LAN MaxKB Provider Proxy
+
+- [x] I1 新增 `preflight-maxkb-provider-proxy` 规格，明确前置平台通过 OCR Worker proxy 调用 MaxKB。
+- [x] I2 新增 `/api/health` 兼容入口。
+- [x] I3 新增 `/api/knowledge-base/provider/status`，返回 MaxKB provider readiness 安全摘要。
+- [x] I4 新增 `/api/knowledge/{knowledgeId}/search`，由 Worker 使用服务端 MaxKB 管理员账号登录并执行 hit-test。
+- [x] I5 明确局域网联调配置：前置平台电脑使用 `MAXKB_BASE_URL=http://192.168.0.235:8091`，`MAXKB_API_KEY=<PREFLIGHT_API_KEY>`。
+- [x] I6 为 provider status 和 search proxy 增加回归测试。
+
+## Task Group J — Local LAN Startup Quickstart
+
+- [x] J1 新增 `local-lan-worker-startup` 规格，明确本地联调启动和密钥不落盘要求。
+- [x] J2 生成本次联调建议使用的 Worker bearer token。
+- [x] J3 更新仓库根目录 `quickstart.md`，补充 MaxKB、OCR Worker、前置平台 provider 配置、健康检查和检索代理测试命令。
+- [x] J4 明确 Worker 需要使用 `--host 0.0.0.0 --port 8091` 暴露给 `192.168.0.219`。

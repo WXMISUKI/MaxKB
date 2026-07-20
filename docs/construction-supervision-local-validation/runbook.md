@@ -274,6 +274,7 @@ python docs\construction-supervision-local-validation\scripts\postprocess_ocr_do
 - `docs/construction-supervision-local-validation/preflight-ocr-ingestion-api-contract.md`
 - `docs/construction-supervision-local-validation/preflight-platform-worker-call-guide.md`
 - `docs/construction-supervision-local-validation/preflight-organization-knowledge-design.md`
+- `docs/construction-supervision-local-validation/preflight-platform-handoff.md`
 
 ### 6.4 独立 FastAPI OCR Worker
 
@@ -304,6 +305,9 @@ uv run --project services\preflight-ocr-worker `
 服务入口：
 
 - 健康检查：`http://127.0.0.1:8091/health`
+- 前置平台健康检查别名：`http://127.0.0.1:8091/api/health`
+- MaxKB provider 状态：`http://127.0.0.1:8091/api/knowledge-base/provider/status`
+- MaxKB 检索代理：`http://127.0.0.1:8091/api/knowledge/{knowledgeId}/search`
 - Swagger：`http://127.0.0.1:8091/docs`
 - OpenAPI：`http://127.0.0.1:8091/openapi.json`
 
@@ -342,10 +346,40 @@ uv run --project services\preflight-ocr-worker --extra test pytest
 当前版本仍是单机原型：进程内 BackgroundTasks + 原子 JSON 状态文件。进入 Linux 多实例部署前，再替换为
 PostgreSQL、Redis/Celery 和对象存储；API schema 与状态语义保持不变。
 
+如果前置平台运行在另一台局域网电脑，例如前置平台电脑 `192.168.0.219`，本机 MaxKB/OCR Worker 电脑
+`192.168.0.235`，则 Worker 启动时需要监听局域网地址：
+
+```powershell
+uv run --project services\preflight-ocr-worker `
+  uvicorn preflight_ocr_worker.main:app `
+  --app-dir services\preflight-ocr-worker `
+  --host 0.0.0.0 `
+  --port 8091
+```
+
+前置平台填写：
+
+```env
+KNOWLEDGE_PROVIDER=maxkb
+MAXKB_ENABLED=true
+MAXKB_BASE_URL=http://192.168.0.235:8091
+MAXKB_API_KEY=<PREFLIGHT_API_KEY>
+MAXKB_DEFAULT_KNOWLEDGE_ID=019f787c-644e-7162-bfe5-f4ee02a91539
+MAXKB_TIMEOUT_MS=5000
+MAXKB_HEALTH_PATH=/api/health
+MAXKB_STATUS_PATH=/api/knowledge-base/provider/status
+MAXKB_RETRIEVAL_PATH=/api/knowledge/:knowledgeId/search
+```
+
+前置平台不应填写 `http://127.0.0.1:8091`，除非它和 Worker 运行在同一台电脑。
+
 前置平台联调时优先阅读：
 
+- `docs/construction-supervision-local-validation/preflight-platform-handoff.md`
 - `docs/construction-supervision-local-validation/preflight-platform-worker-call-guide.md`
 - `docs/construction-supervision-local-validation/preflight-organization-knowledge-design.md`
+- `docs/construction-supervision-local-validation/specs/preflight-platform-alignment/spec.md`
+- `docs/construction-supervision-local-validation/specs/preflight-maxkb-provider-proxy/spec.md`
 
 ## 7. 验收问题
 

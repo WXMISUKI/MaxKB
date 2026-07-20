@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .config import Settings
-from .schemas import IngestKnowledgeRequest, RetrievalCheckRequest
+from .schemas import IngestKnowledgeRequest, KnowledgeSearchRequest, RetrievalCheckRequest
 
 
 class ProviderAdapters:
@@ -164,6 +164,52 @@ class ProviderAdapters:
             "results": rows,
         }
 
+    def search_maxkb(self, knowledge_id: str, request: KnowledgeSearchRequest) -> dict[str, Any]:
+        from configure_and_upload_maxkb import MaxKBClient
+
+        client = MaxKBClient(self.settings.maxkb_base_url)
+        client.login(self.settings.maxkb_username, self.settings.maxkb_password)
+        workspace_id = self.settings.maxkb_workspace_id
+        hits = client.request(
+            "POST",
+            f"/workspace/{workspace_id}/knowledge/{knowledge_id}/hit_test",
+            json={
+                "query_text": request.query_text,
+                "top_number": request.top_number,
+                "similarity": request.similarity,
+                "search_mode": request.search_mode,
+            },
+        ) or []
+        return {
+            "provider": "maxkb",
+            "workspace_id": workspace_id,
+            "knowledge_id": knowledge_id,
+            "query_text": request.query_text,
+            "search_mode": request.search_mode,
+            "top_number": request.top_number,
+            "similarity": request.similarity,
+            "hits": [self._safe_hit(knowledge_id, item) for item in hits],
+        }
+
     @staticmethod
     def _document_name(hit: dict[str, Any]) -> str:
         return str(hit.get("document_name") or hit.get("document", {}).get("name") or "")
+
+    @classmethod
+    def _safe_hit(cls, knowledge_id: str, hit: dict[str, Any]) -> dict[str, Any]:
+        content = str(hit.get("content") or hit.get("text") or hit.get("paragraph", {}).get("content") or "")
+        document = hit.get("document") if isinstance(hit.get("document"), dict) else {}
+        paragraph = hit.get("paragraph") if isinstance(hit.get("paragraph"), dict) else {}
+        document_id = str(hit.get("document_id") or document.get("id") or "")
+        paragraph_id = str(hit.get("paragraph_id") or paragraph.get("id") or hit.get("id") or "")
+        return {
+            "provider": "maxkb",
+            "provider_dataset_id": knowledge_id,
+            "knowledge_id": knowledge_id,
+            "provider_document_id": document_id,
+            "provider_chunk_id": paragraph_id,
+            "score": hit.get("similarity") or hit.get("score"),
+            "title": cls._document_name(hit),
+            "safe_snippet": content[:500],
+            "locator": hit.get("locator") or cls._document_name(hit),
+        }

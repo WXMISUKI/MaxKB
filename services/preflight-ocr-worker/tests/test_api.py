@@ -73,6 +73,30 @@ class FakeAdapters:
             ],
         }
 
+    def search_maxkb(self, knowledge_id: str, request: Any) -> dict[str, Any]:
+        return {
+            "provider": "maxkb",
+            "workspace_id": "default",
+            "knowledge_id": knowledge_id,
+            "query_text": request.query_text,
+            "search_mode": request.search_mode,
+            "top_number": request.top_number,
+            "similarity": request.similarity,
+            "hits": [
+                {
+                    "provider": "maxkb",
+                    "provider_dataset_id": knowledge_id,
+                    "knowledge_id": knowledge_id,
+                    "provider_document_id": "doc-test",
+                    "provider_chunk_id": "chunk-test",
+                    "score": 0.88,
+                    "title": "营业执照 OCR 结构化结果",
+                    "safe_snippet": "统一社会信用代码 91310115515002x94",
+                    "locator": "business-license-ingest.md",
+                }
+            ],
+        }
+
 
 class FailingAdapters(FakeAdapters):
     def ocr_and_archive(
@@ -99,6 +123,7 @@ def settings_for(tmp_path: Path) -> Settings:
         maxkb_password="test-password",
         maxkb_workspace_id="default",
         maxkb_knowledge_name="test-knowledge",
+        maxkb_default_knowledge_id="kb-test",
         api_key="test-worker-key",
     )
 
@@ -309,15 +334,60 @@ def test_health_reports_worker_auth_and_capabilities(tmp_path: Path) -> None:
     settings = settings_for(tmp_path)
     app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
 
-    response = TestClient(app).get("/health")
+    client = TestClient(app)
+    response = client.get("/health")
+    api_response = client.get("/api/health")
 
     assert response.status_code == 200
+    assert api_response.status_code == 200
     assert response.json()["ready"] is True
     assert response.json()["authentication"] == {"configured": True, "scheme": "bearer"}
     assert response.json()["capabilities"]["idempotentSubmission"] is True
     assert response.json()["capabilities"]["correlationPropagation"] is True
     assert response.json()["providers"]["paddleocr_vl"]["status"] == "ready"
     assert response.json()["providers"]["maxkb"]["status"] == "ready"
+    assert response.json()["providers"]["maxkb"]["defaultKnowledgeId"] == "kb-test"
+
+
+def test_knowledge_provider_status_requires_bearer(tmp_path: Path) -> None:
+    settings = settings_for(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
+
+    response = TestClient(app).get("/api/knowledge-base/provider/status")
+
+    assert response.status_code == 401
+
+
+def test_knowledge_provider_status_returns_safe_summary(tmp_path: Path) -> None:
+    settings = settings_for(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
+
+    response = TestClient(app).get("/api/knowledge-base/provider/status", headers=auth_headers())
+
+    assert response.status_code == 200
+    assert response.json()["provider"] == "maxkb"
+    assert response.json()["ready"] is True
+    assert response.json()["defaultKnowledgeId"] == "kb-test"
+    assert "test-password" not in response.text
+
+
+def test_knowledge_search_proxies_safe_hits(tmp_path: Path) -> None:
+    settings = settings_for(tmp_path)
+    app = create_app(settings, JsonStateStore(settings.state_file), FakeAdapters(tmp_path))
+
+    response = TestClient(app).post(
+        "/api/knowledge/kb-test/search",
+        json={"queryText": "统一社会信用代码 91310115515002x94", "searchMode": "keywords"},
+        headers=auth_headers(),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider"] == "maxkb"
+    assert body["knowledgeId"] == "kb-test"
+    assert body["queryText"] == "统一社会信用代码 91310115515002x94"
+    assert body["hits"][0]["providerDocumentId"] == "doc-test"
+    assert body["hits"][0]["safeSnippet"] == "统一社会信用代码 91310115515002x94"
 
 
 def test_business_api_is_unavailable_when_worker_auth_is_not_configured(tmp_path: Path) -> None:

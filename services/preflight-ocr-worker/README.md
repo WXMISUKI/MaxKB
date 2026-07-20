@@ -56,6 +56,7 @@ http://127.0.0.1:8091/docs
 | `MAXKB_PASSWORD` | 必填，MaxKB 管理员密码，无默认值 |
 | `MAXKB_WORKSPACE_ID` | 默认 `default` |
 | `MAXKB_KNOWLEDGE_NAME` | 默认试点知识库名称 |
+| `MAXKB_DEFAULT_KNOWLEDGE_ID` | 可选，默认项目级知识库 ID |
 
 ## 平台调用约束
 
@@ -78,6 +79,36 @@ X-Correlation-ID: <平台审计关联标识>
 - 同 key、不同请求：返回 `409`。
 - Worker 鉴权未配置：返回 `503`。
 - Bearer 凭据错误：返回 `401`。
+
+## 给前置平台的 MaxKB Provider 配置
+
+本地局域网联调时，前置平台电脑 `192.168.0.219` 应通过本机 Worker proxy 访问 MaxKB 支持能力。本机 IP 为
+`192.168.0.235`，Worker 默认端口为 `8091`：
+
+```env
+KNOWLEDGE_PROVIDER=maxkb
+MAXKB_ENABLED=true
+MAXKB_BASE_URL=http://192.168.0.235:8091
+MAXKB_API_KEY=<PREFLIGHT_API_KEY>
+MAXKB_DEFAULT_KNOWLEDGE_ID=019f787c-644e-7162-bfe5-f4ee02a91539
+MAXKB_TIMEOUT_MS=5000
+MAXKB_HEALTH_PATH=/api/health
+MAXKB_STATUS_PATH=/api/knowledge-base/provider/status
+MAXKB_RETRIEVAL_PATH=/api/knowledge/:knowledgeId/search
+```
+
+注意：`MAXKB_BASE_URL` 只有在前置平台服务也运行在本机时才可以写 `http://127.0.0.1:8091`。前置平台运行在
+`192.168.0.219` 时，`127.0.0.1` 会指向前置平台自己的电脑。
+
+Worker proxy 提供：
+
+| 方法 | 路径 | 用途 |
+| --- | --- | --- |
+| `GET` | `/api/health` | 前置平台风格健康检查别名 |
+| `GET` | `/api/knowledge-base/provider/status` | MaxKB provider readiness 安全摘要 |
+| `POST` | `/api/knowledge/{knowledgeId}/search` | MaxKB hit-test 安全检索代理 |
+
+检索代理只返回安全 hit 摘要；正式审查结论仍由前置平台保存。
 
 ## 测试
 
