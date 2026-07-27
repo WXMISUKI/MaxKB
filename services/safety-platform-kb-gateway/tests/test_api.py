@@ -59,7 +59,7 @@ def test_upload_auto_creates_knowledge_base():
         "/api/teams/t1/documents",
         headers=AUTH,
         files={"file": ("demo.docx", b"PK")},
-        data={"teamName": "T1"},
+        data={"teamName": "T1", "projectId": "p1", "documentType": "business_license"},
     )
     clear_overrides()
     assert response.status_code == 201
@@ -77,7 +77,7 @@ def test_upload_uses_explicit_knowledge_base_id():
         "/api/teams/t1/documents",
         headers=AUTH,
         files={"file": ("demo.docx", b"PK")},
-        data={"knowledgeBaseId": "kb-explicit"},
+        data={"knowledgeBaseId": "kb-explicit", "projectId": "p1", "documentType": "business_license"},
     )
     clear_overrides()
     assert response.status_code == 201
@@ -191,7 +191,45 @@ def test_sync_basis_returns_batch_result():
         "/api/teams/t1/knowledge-base/sync-basis",
         headers=AUTH,
         files=[("files", ("basis1.docx", b"a")), ("files", ("basis2.docx", b"b"))],
+        data={"projectId": "p1", "sourceTable": "biz_system_document"},
     )
     clear_overrides()
     assert response.status_code == 201
     assert response.json()["uploadedCount"] == 2
+
+
+def test_upload_returns_source_metadata_and_content_hash():
+    adapter = MagicMock()
+    adapter.ensure_team_kb.return_value = ({"id": "kb-1", "name": "team:t1:T1"}, False)
+    adapter.upload_document.return_value = {"provider_document_id": "doc-1", "file_name": "license.pdf"}
+    override_adapter(adapter)
+    response = client.post(
+        "/api/teams/t1/documents",
+        headers=AUTH,
+        files={"file": ("license.pdf", b"license-content")},
+        data={
+            "projectId": "p1",
+            "documentType": "business_license",
+            "sourceTable": "biz_work_team",
+            "sourceObjectId": "team-1",
+        },
+    )
+    clear_overrides()
+    assert response.status_code == 201
+    metadata = response.json()["metadata"]
+    assert metadata["scope"] == "team_private"
+    assert metadata["sourceObjectId"] == "team-1"
+    assert len(metadata["contentHash"]) == 64
+
+
+def test_project_shared_upload_requires_source_table():
+    adapter = MagicMock()
+    override_adapter(adapter)
+    response = client.post(
+        "/api/teams/t1/documents",
+        headers=AUTH,
+        files={"file": ("basis.pdf", b"basis")},
+        data={"projectId": "p1", "documentType": "project_basis", "scope": "project_shared"},
+    )
+    clear_overrides()
+    assert response.status_code == 400

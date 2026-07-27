@@ -193,6 +193,23 @@ ZHGDX 当前存在三种文件表示方式，平台后端必须在调用网关�
 
 平台绑定关系稳定后，平台后端应优先传入 `knowledgeBaseId`。网关保留 `teamId` 作为兼容兜底。
 
+### 7.4 上传响应
+
+网关成功上传后必须返回：
+
+- `teamId`
+- `knowledgeBaseId`
+- `providerDocumentId`
+- `fileName`
+- `metadata.scope`
+- `metadata.projectId`
+- `metadata.documentType`
+- `metadata.contentHash`
+
+当平台未传入 `contentHash` 时，网关使用上传文件内容计算 SHA-256 并返回。该哈希用于平台后端去重、版本追踪和后续幂等设计。
+
+本阶段不在网关内持久化同步状态，也不承诺跨进程幂等。生产环境的幂等键、版本状态和 provider ref 应由安全监管平台事实库持久化。
+
 ## 8. 生命周期规则
 
 - 队伍创建：可预建知识库，也可在首次上传时自动创建。

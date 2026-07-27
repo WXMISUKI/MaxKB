@@ -39,6 +39,8 @@ $env:MAXKB_DEFAULT_EMBEDDING_MODEL_ID = "embedding-model-id"
 - `sourceObjectId`
 - `contentHash`
 
+上传成功响应中的 `metadata.contentHash` 为文件内容 SHA-256；平台后端应将它与 `sourceObjectId`、`providerDocumentId` 一起保存，用于资料去重、版本变更和后续删除。
+
 ## 3. 启动方式
 
 在仓库根目录执行：

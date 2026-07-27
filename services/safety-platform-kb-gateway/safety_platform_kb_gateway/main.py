@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -18,6 +19,7 @@ from .schemas import (
     HealthResponse,
     KnowledgeBaseDeleteResponse,
     KnowledgeBaseStatus,
+    DocumentMetadata,
     SearchDiagnostics,
     SearchHit,
     SearchResponse,
@@ -47,7 +49,7 @@ def handle_maxkb_error(exc: MaxKBError) -> None:
     raise HTTPException(status_code=500, detail=str(exc))
 
 
-def save_upload(upload: UploadFile) -> Path:
+def save_upload(upload: UploadFile) -> tuple[Path, str]:
     if not upload.filename:
         raise HTTPException(status_code=400, detail="Filename is required.")
     if not is_supported_file(upload.filename):
@@ -57,7 +59,45 @@ def save_upload(upload: UploadFile) -> Path:
     tmp_file.write(content)
     tmp_file.flush()
     tmp_file.close()
-    return Path(tmp_file.name)
+    return Path(tmp_file.name), hashlib.sha256(content).hexdigest()
+
+
+def build_document_metadata(
+    *,
+    team_id: str,
+    scope: str,
+    project_id: str,
+    document_type: str,
+    project_name: str = "",
+    source_type: str = "",
+    source_table: str = "",
+    source_object_id: str = "",
+    basis_version_id: str = "",
+    content_hash: str = "",
+    effective_status: str = "",
+    effective_date: str = "",
+) -> DocumentMetadata:
+    if scope not in {"team_private", "project_shared"}:
+        raise HTTPException(status_code=400, detail="scope must be team_private or project_shared.")
+    if not project_id:
+        raise HTTPException(status_code=400, detail="projectId is required.")
+    if not document_type:
+        raise HTTPException(status_code=400, detail="documentType is required.")
+    if scope == "project_shared" and not source_table:
+        raise HTTPException(status_code=400, detail="sourceTable is required for project_shared documents.")
+    return DocumentMetadata(
+        scope=scope,
+        project_id=project_id,
+        document_type=document_type,
+        project_name=project_name,
+        source_type=source_type,
+        source_table=source_table,
+        source_object_id=source_object_id,
+        basis_version_id=basis_version_id,
+        content_hash=content_hash,
+        effective_status=effective_status,
+        effective_date=effective_date,
+    )
 
 
 def resolve_knowledge_base(
@@ -118,15 +158,41 @@ def upload_team_document(
     file: UploadFile = File(...),
     team_name: str = Form(""),
     project_name: str = Form(""),
-    document_type: str = Form(""),
+    document_type: str = Form("", alias="documentType"),
+    scope: str = Form("team_private"),
+    project_id: str = Form("", alias="projectId"),
+    source_type: str = Form(""),
+    source_table: str = Form("", alias="sourceTable"),
+    source_object_id: str = Form("", alias="sourceObjectId"),
+    basis_version_id: str = Form("", alias="basisVersionId"),
+    content_hash: str = Form("", alias="contentHash"),
+    effective_status: str = Form(""),
+    effective_date: str = Form(""),
     knowledge_base_id: str = Form("", alias="knowledgeBaseId"),
     create_if_missing: bool = Form(True),
     _token: str = Depends(require_api_key),
     settings: Settings = Depends(get_settings),
     adapter: GatewayAdapter = Depends(get_adapter),
 ):
-    _ = document_type
-    temp_path = save_upload(file)
+    temp_path, computed_hash = save_upload(file)
+    try:
+        metadata = build_document_metadata(
+            team_id=team_id,
+            scope=scope,
+            project_id=project_id,
+            document_type=document_type,
+            project_name=project_name,
+            source_type=source_type,
+            source_table=source_table,
+            source_object_id=source_object_id,
+            basis_version_id=basis_version_id,
+            content_hash=content_hash or computed_hash,
+            effective_status=effective_status,
+            effective_date=effective_date,
+        )
+    except HTTPException:
+        temp_path.unlink(missing_ok=True)
+        raise
     try:
         knowledge, auto_created = resolve_knowledge_base(
             adapter,
@@ -151,6 +217,7 @@ def upload_team_document(
         knowledge_base_id=knowledge["id"],
         provider_document_id=result["provider_document_id"],
         file_name=result["file_name"],
+        metadata=metadata,
         auto_created_kb=auto_created,
     )
 
@@ -319,6 +386,10 @@ def search_team_field(
 def sync_basis(
     team_id: str,
     files: list[UploadFile] = File(...),
+    project_id: str = Form("", alias="projectId"),
+    project_name: str = Form(""),
+    source_table: str = Form("", alias="sourceTable"),
+    basis_version_id: str = Form("", alias="basisVersionId"),
     knowledge_base_id: str = Form("", alias="knowledgeBaseId"),
     create_if_missing: bool = Form(True),
     _token: str = Depends(require_api_key),
@@ -339,7 +410,21 @@ def sync_basis(
     for upload in files:
         if not upload.filename:
             continue
-        temp_path = save_upload(upload)
+        temp_path, computed_hash = save_upload(upload)
+        try:
+            metadata = build_document_metadata(
+                team_id=team_id,
+                scope="project_shared",
+                project_id=project_id,
+                document_type="project_basis",
+                project_name=project_name,
+                source_table=source_table,
+                basis_version_id=basis_version_id,
+                content_hash=computed_hash,
+            )
+        except HTTPException:
+            temp_path.unlink(missing_ok=True)
+            raise
         try:
             result = adapter.upload_document(settings.maxkb_workspace_id, knowledge["id"], temp_path)
         except MaxKBError as exc:
@@ -352,6 +437,7 @@ def sync_basis(
                 knowledge_base_id=knowledge["id"],
                 provider_document_id=result["provider_document_id"],
                 file_name=result["file_name"],
+                metadata=metadata,
                 auto_created_kb=False,
             )
         )

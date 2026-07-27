@@ -55,6 +55,8 @@
 - 验证结果：`pytest` 13 项通过，Ruff 通过，`git diff --check` 通过
 - 清理状态：测试缓存已定位在服务目录内，但当前本地安全策略禁止递归删除，缓存未进入 Git
 - 后续入口：G8 平台后端事件驱动同步；G9 MaxKB provider 元数据兼容性验证
+- 本轮实现：H1-H6 已完成，网关上传契约已具备真实平台联调所需的归属字段和内容哈希
+- 本轮验证：`pytest` 15 项通过，Ruff 通过，`git diff --check` 通过
 
 ## Task Group F - Phase 2 合同增强
 
@@ -74,3 +76,14 @@
 - [x] G7 新增 ZHGDX 映射规格和数据库盘点归档
 - [ ] G8 平台后端按映射规格实现事件驱动同步调用
 - [ ] G9 对 MaxKB 文档 provider 元数据能力做兼容性验证
+
+## Task Group H - 真实资料同步契约
+
+- [x] H1 上传接口接收 `scope`、`projectId`、`documentType` 等归属字段
+- [x] H2 支持 `sourceTable`、`sourceObjectId`、`basisVersionId`
+- [x] H3 自动计算并返回文件内容 SHA-256
+- [x] H4 上传响应返回 `knowledgeBaseId` 和 `providerDocumentId`
+- [x] H5 增加项目共享资料的归属校验
+- [x] H6 增加归属校验失败时的临时文件清理
+- [ ] H7 由安全监管平台持久化幂等键、版本状态和 provider refs
+- [ ] H8 对真实 `biz_project_person_certificate` 资料执行端到端联调

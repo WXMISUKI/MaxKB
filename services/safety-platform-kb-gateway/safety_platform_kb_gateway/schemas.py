@@ -67,11 +67,26 @@ class SearchResponse(ApiModel):
     diagnostics: SearchDiagnostics
 
 
+class DocumentMetadata(ApiModel):
+    scope: Literal["team_private", "project_shared"]
+    project_id: str
+    document_type: str
+    project_name: str = ""
+    source_type: str = ""
+    source_table: str = ""
+    source_object_id: str = ""
+    basis_version_id: str = ""
+    content_hash: str = ""
+    effective_status: str = ""
+    effective_date: str = ""
+
+
 class DocumentUploadResponse(ApiModel):
     team_id: str
     knowledge_base_id: str
     provider_document_id: str
     file_name: str
+    metadata: DocumentMetadata
     auto_created_kb: bool = False
 
 
