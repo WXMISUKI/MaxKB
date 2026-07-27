@@ -46,9 +46,31 @@
 - [x] E2 补平台后端接入说明
 - [ ] E3 清理测试缓存与临时产物
 
+## 本轮归档记录（2026-07-27）
+
+- 规格归档：`specs/zhgdx-team-knowledge-mapping/spec.md`
+- 数据库盘点：`zhgdx-schema-inventory.md`
+- 设计同步：已补充 ZHGDX 映射和项目/队伍归属边界
+- 实现基线：现有网关接口保持不变，避免未经验证的 provider 元数据改造
+- 验证结果：`pytest` 13 项通过，Ruff 通过，`git diff --check` 通过
+- 清理状态：测试缓存已定位在服务目录内，但当前本地安全策略禁止递归删除，缓存未进入 Git
+- 后续入口：G8 平台后端事件驱动同步；G9 MaxKB provider 元数据兼容性验证
+
 ## Task Group F - Phase 2 合同增强
 
 - [ ] F1 支持显式 `knowledgeBaseId` 绑定上传
 - [ ] F2 支持显式 `knowledgeBaseId` 绑定检索
 - [ ] F3 支持显式 `knowledgeBaseId` 绑定队伍知识库查询与删除
 - [ ] F4 让平台后端可在 `teamId` 和 `knowledgeBaseId` 之间逐步切换
+
+## Task Group G - ZHGDX 数据映射与同步边界
+
+- [x] G1 只读盘点 `zhgdx` 全量表结构
+- [x] G2 明确 `biz_work_team.id` 为队伍知识库绑定主键
+- [x] G3 明确人员、证书、合同和设备的队伍归属链路
+- [x] G4 明确 `sys_file`、业务 URL、`biz_attachment` 三种文件来源
+- [x] G5 明确队伍专属资料和项目共享依据边界
+- [x] G6 明确暂不投影到队伍库的项目级审查数据
+- [x] G7 新增 ZHGDX 映射规格和数据库盘点归档
+- [ ] G8 平台后端按映射规格实现事件驱动同步调用
+- [ ] G9 对 MaxKB 文档 provider 元数据能力做兼容性验证

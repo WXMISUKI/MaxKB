@@ -29,6 +29,16 @@ $env:MAXKB_WORKSPACE_ID = "default"
 $env:MAXKB_DEFAULT_EMBEDDING_MODEL_ID = "embedding-model-id"
 ```
 
+平台后端还应按照 `specs/zhgdx-team-knowledge-mapping/spec.md` 传递资料归属信息：
+
+- 队伍资料：`scope=team_private`
+- 项目共享依据：`scope=project_shared`
+- `projectId`
+- `documentType`
+- `sourceTable`
+- `sourceObjectId`
+- `contentHash`
+
 ## 3. 启动方式
 
 在仓库根目录执行：
@@ -79,6 +89,10 @@ Invoke-RestMethod `
     teamName = "LJ-01 路基土石方分包作业队"
     projectName = "南江至东岭高速公路改扩建工程"
     documentType = "business_license"
+    scope = "team_private"
+    projectId = "project-001"
+    sourceTable = "biz_work_team"
+    sourceObjectId = "team-001"
   }
 ```
 
@@ -133,3 +147,5 @@ Invoke-RestMethod `
 - 首版图片和扫描件不主动走 OCR Worker
 - 首版只代理 MaxKB，不支持切换其他知识 provider
 - 检索结果只作为支持性召回，不直接形成正式审查结论
+- 网关不直连 `zhgdx`，平台后端负责根据 `sys_file`、业务 URL 或 `biz_attachment` 解析文件内容
+- 目前项目/队伍归属元数据以接口契约为准；MaxKB provider 元数据增强作为后续兼容性任务处理

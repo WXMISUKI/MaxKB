@@ -257,3 +257,18 @@
 - 平台数据库一旦落地，就能直接把绑定关系写死到业务事实里
 - 网关从“自动猜测队伍知识库”逐步转向“执行平台显式绑定”
 - 后续从局域网迁云或换 provider 时，平台契约更稳
+
+## 11. ZHGDX 数据映射与归属边界
+
+真实安全监管平台数据库 `zhgdx` 的映射、文件来源和项目/队伍资料边界见：
+
+`specs/zhgdx-team-knowledge-mapping/spec.md`
+
+关键约束：
+
+- `biz_work_team.id` 是队伍知识库绑定主键。
+- 人员资料通过 `biz_project_org_user.team_id` 归属队伍。
+- 设备资料通过 `biz_equipment.team_id` 归属队伍。
+- 项目共享依据使用 `scope=project_shared` 投影到队伍库。
+- 无法可靠归属队伍的项目级审查数据不得直接进入队伍库。
+- 网关接收平台后端解析后的文件内容，不直连 `zhgdx`。
