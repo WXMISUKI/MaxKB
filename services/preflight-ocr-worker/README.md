@@ -83,12 +83,12 @@ X-Correlation-ID: <平台审计关联标识>
 ## 给前置平台的 MaxKB Provider 配置
 
 本地局域网联调时，前置平台电脑 `192.168.0.219` 应通过本机 Worker proxy 访问 MaxKB 支持能力。本机 IP 为
-`192.168.0.235`，Worker 默认端口为 `8091`：
+`192.168.0.219`，Worker 默认端口为 `8091`：
 
 ```env
 KNOWLEDGE_PROVIDER=maxkb
 MAXKB_ENABLED=true
-MAXKB_BASE_URL=http://192.168.0.235:8091
+MAXKB_BASE_URL=http://192.168.0.219:8091
 MAXKB_API_KEY=<PREFLIGHT_API_KEY>
 MAXKB_DEFAULT_KNOWLEDGE_ID=019f787c-644e-7162-bfe5-f4ee02a91539
 MAXKB_TIMEOUT_MS=5000

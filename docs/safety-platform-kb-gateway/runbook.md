@@ -20,13 +20,32 @@ $env:GATEWAY_PORT = "8092"
 $env:MAXKB_BASE_URL = "http://localhost:8080/admin/api"
 $env:MAXKB_USERNAME = "admin"
 $env:MAXKB_PASSWORD = "replace-with-maxkb-password"
-$env:MAXKB_WORKSPACE_ID = "default"
+$env:MAXKB_WORKSPACE_ID = "safety_platform"
 ```
 
 如果你已经明确要固定 embedding 模型，也可以补充：
 
 ```powershell
 $env:MAXKB_DEFAULT_EMBEDDING_MODEL_ID = "embedding-model-id"
+```
+
+推荐补充的隔离与安全开关：
+
+```powershell
+$env:MAXKB_TEAM_KB_PREFIX = "safety-team"
+$env:REQUIRE_KNOWLEDGE_BASE_ID_FOR_DELETE = "true"
+```
+
+如果你使用的是开源版 MaxKB，需要先初始化该 workspace 的根文件夹（否则创建知识库时 `folder_id` 会找不到）：
+
+```powershell
+docker exec -w /opt/maxkb-app maxkb python apps/manage.py shell -c "from users.models import User; from knowledge.models.knowledge import KnowledgeFolder; from tools.models.tool import ToolFolder; from application.models.application import ApplicationFolder; ws='safety_platform'; u=User.objects.filter(username='admin').first() or User.objects.order_by('create_time').first(); [M.objects.get_or_create(id=ws, defaults={'name':ws,'workspace_id':ws,'user':u,'parent':None}) for M in (KnowledgeFolder,ToolFolder,ApplicationFolder)]; print('workspace bootstrapped:', ws)"
+```
+
+建议同时固定 `MAXKB_DEFAULT_EMBEDDING_MODEL_ID`，避免新 workspace 下没有模型导致创建知识库失败。可在 MaxKB 容器内查询一个可用的 embedding 模型 id：
+
+```powershell
+docker exec -w /opt/maxkb-app maxkb python apps/manage.py shell -c "from models_provider.models.model_management import Model; m=Model.objects.filter(model_type='EMBEDDING').first(); print(getattr(m,'id',''))"
 ```
 
 平台后端还应按照 `specs/zhgdx-team-knowledge-mapping/spec.md` 传递资料归属信息：

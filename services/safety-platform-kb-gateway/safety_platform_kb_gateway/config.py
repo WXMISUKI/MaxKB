@@ -15,7 +15,9 @@ class Settings:
     maxkb_username: str
     maxkb_password: str
     maxkb_workspace_id: str
+    maxkb_team_kb_prefix: str
     maxkb_default_embedding_model_id: str
+    require_knowledge_base_id_for_delete: bool
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -26,7 +28,10 @@ class Settings:
             maxkb_username=os.getenv("MAXKB_USERNAME", "admin"),
             maxkb_password=os.getenv("MAXKB_PASSWORD", ""),
             maxkb_workspace_id=os.getenv("MAXKB_WORKSPACE_ID", "default"),
+            maxkb_team_kb_prefix=os.getenv("MAXKB_TEAM_KB_PREFIX", "team"),
             maxkb_default_embedding_model_id=os.getenv("MAXKB_DEFAULT_EMBEDDING_MODEL_ID", ""),
+            require_knowledge_base_id_for_delete=os.getenv("REQUIRE_KNOWLEDGE_BASE_ID_FOR_DELETE", "false").lower()
+            in {"1", "true", "yes", "on"},
         )
 
     @property

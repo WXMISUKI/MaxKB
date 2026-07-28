@@ -31,8 +31,8 @@ The preflight platform SHALL point MaxKB provider configuration at the Worker pr
 
 #### Scenario: Preflight platform runs on another LAN host
 
-- **WHEN** the MaxKB/OCR Worker host IP is `192.168.0.235` and the preflight platform host IP is `192.168.0.219`
-- **THEN** the preflight platform uses `MAXKB_BASE_URL=http://192.168.0.235:<worker-port>`
+- **WHEN** the MaxKB/OCR Worker host IP is `192.168.0.219` and the preflight platform host IP is `192.168.0.219`
+- **THEN** the preflight platform uses `MAXKB_BASE_URL=http://192.168.0.219:<worker-port>`
 - **AND** uses `MAXKB_API_KEY=<PREFLIGHT_API_KEY>`
 - **AND** does not use `127.0.0.1` unless the platform process runs on the same machine as the Worker
 

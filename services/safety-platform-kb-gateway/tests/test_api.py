@@ -182,6 +182,16 @@ def test_delete_team_knowledge_base_by_explicit_id():
     assert response.json()["deleted"] is True
 
 
+def test_delete_team_knowledge_base_requires_explicit_id_when_protected():
+    os.environ["REQUIRE_KNOWLEDGE_BASE_ID_FOR_DELETE"] = "true"
+    override_adapter(MagicMock())
+    response = client.delete("/api/teams/t1/knowledge-base", headers=AUTH)
+    clear_overrides()
+    del os.environ["REQUIRE_KNOWLEDGE_BASE_ID_FOR_DELETE"]
+    assert response.status_code == 400
+    assert "knowledgeBaseId" in response.json()["detail"]
+
+
 def test_sync_basis_returns_batch_result():
     adapter = MagicMock()
     adapter.ensure_team_kb.return_value = ({"id": "kb-1", "name": "team:t1:T1"}, False)

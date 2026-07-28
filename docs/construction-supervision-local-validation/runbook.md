@@ -347,7 +347,7 @@ uv run --project services\preflight-ocr-worker --extra test pytest
 PostgreSQL、Redis/Celery 和对象存储；API schema 与状态语义保持不变。
 
 如果前置平台运行在另一台局域网电脑，例如前置平台电脑 `192.168.0.219`，本机 MaxKB/OCR Worker 电脑
-`192.168.0.235`，则 Worker 启动时需要监听局域网地址：
+`192.168.0.219`，则 Worker 启动时需要监听局域网地址：
 
 ```powershell
 uv run --project services\preflight-ocr-worker `
@@ -362,7 +362,7 @@ uv run --project services\preflight-ocr-worker `
 ```env
 KNOWLEDGE_PROVIDER=maxkb
 MAXKB_ENABLED=true
-MAXKB_BASE_URL=http://192.168.0.235:8091
+MAXKB_BASE_URL=http://192.168.0.219:8091
 MAXKB_API_KEY=<PREFLIGHT_API_KEY>
 MAXKB_DEFAULT_KNOWLEDGE_ID=019f787c-644e-7162-bfe5-f4ee02a91539
 MAXKB_TIMEOUT_MS=5000

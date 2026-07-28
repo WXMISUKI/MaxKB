@@ -95,7 +95,7 @@
 - [x] I2 新增 `/api/health` 兼容入口。
 - [x] I3 新增 `/api/knowledge-base/provider/status`，返回 MaxKB provider readiness 安全摘要。
 - [x] I4 新增 `/api/knowledge/{knowledgeId}/search`，由 Worker 使用服务端 MaxKB 管理员账号登录并执行 hit-test。
-- [x] I5 明确局域网联调配置：前置平台电脑使用 `MAXKB_BASE_URL=http://192.168.0.235:8091`，`MAXKB_API_KEY=<PREFLIGHT_API_KEY>`。
+- [x] I5 明确局域网联调配置：前置平台电脑使用 `MAXKB_BASE_URL=http://192.168.0.219:8091`，`MAXKB_API_KEY=<PREFLIGHT_API_KEY>`。
 - [x] I6 为 provider status 和 search proxy 增加回归测试。
 
 ## Task Group J — Local LAN Startup Quickstart

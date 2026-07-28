@@ -24,12 +24,12 @@ The OCR Worker SHALL be started in a way that the preflight platform host can re
 
 #### Scenario: The preflight platform runs on another computer
 
-- **WHEN** the Worker host is `192.168.0.235` and the preflight platform host is `192.168.0.219`
+- **WHEN** the Worker host is `192.168.0.219` and the preflight platform host is `192.168.0.219`
 - **THEN** Worker startup uses `--host 0.0.0.0` or an equivalent LAN-bind address
-- **AND** the preflight platform uses `MAXKB_BASE_URL=http://192.168.0.235:8091`
+- **AND** the preflight platform uses `MAXKB_BASE_URL=http://192.168.0.219:8091`
 - **AND** `127.0.0.1` is used only for same-machine checks
 
 #### Scenario: Windows blocks the port
 
-- **WHEN** `192.168.0.219` cannot reach `http://192.168.0.235:8091/api/health`
+- **WHEN** `192.168.0.219` cannot reach `http://192.168.0.219:8091/api/health`
 - **THEN** the operator checks Windows firewall and allows inbound TCP `8091`

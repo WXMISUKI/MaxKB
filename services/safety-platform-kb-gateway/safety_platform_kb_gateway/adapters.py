@@ -151,8 +151,11 @@ class GatewayAdapter:
             self._client.login(self.settings.maxkb_username, self.settings.maxkb_password)
         return self._client
 
+    def team_kb_prefix(self, team_id: str) -> str:
+        return f"{self.settings.maxkb_team_kb_prefix}:{team_id}:"
+
     def find_team_kb(self, workspace_id: str, team_id: str) -> dict[str, Any] | None:
-        prefix = f"team:{team_id}:"
+        prefix = self.team_kb_prefix(team_id)
         for item in self.client().list_knowledge(workspace_id):
             if str(item.get("name", "")).startswith(prefix):
                 return item
@@ -184,7 +187,7 @@ class GatewayAdapter:
         if not create_if_missing:
             raise MaxKBError(f"Knowledge base for team {team_id} was not found.")
         display_name = team_name or team_id
-        name = f"team:{team_id}:{display_name} 资质知识库"
+        name = f"{self.team_kb_prefix(team_id)}{display_name} 资质知识库"
         desc = f"{display_name} 资质资料库"
         if project_name:
             desc = f"{project_name} - {desc}"

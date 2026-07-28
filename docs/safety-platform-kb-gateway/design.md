@@ -106,6 +106,16 @@
 - `paragraphId`
 - `sourceType`
 
+### 4.5 多项目隔离策略
+
+同一 MaxKB 实例可能会被多个项目分支复用。为避免互相污染，安全监管平台采用：
+
+- 主策略：独立 `workspaceId`（推荐 `safety_platform`）
+- 可选策略：队伍知识库命名前缀（推荐 `safety-team`）
+- 线上安全：可配置开启“删除必须显式传 `knowledgeBaseId`”保护阀
+
+详细规格见：`specs/multi-project-isolation/spec.md`。
+
 ## 5. 文件类型策略
 
 首版支持：

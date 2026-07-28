@@ -256,6 +256,8 @@ def delete_team_knowledge_base(
     settings: Settings = Depends(get_settings),
     adapter: GatewayAdapter = Depends(get_adapter),
 ):
+    if settings.require_knowledge_base_id_for_delete and not knowledge_base_id:
+        raise HTTPException(status_code=400, detail="knowledgeBaseId is required when deletion protection is enabled.")
     try:
         deleted = (
             adapter.delete_knowledge_base(settings.maxkb_workspace_id, knowledge_base_id)

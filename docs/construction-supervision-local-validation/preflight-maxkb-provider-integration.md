@@ -28,13 +28,13 @@ MaxKB 命中结果只能作为支持性证据召回，不得直接写入正式�
 ```env
 KNOWLEDGE_PROVIDER=maxkb
 MAXKB_ENABLED=true
-MAXKB_BASE_URL=http://192.168.0.235:8091
+MAXKB_BASE_URL=http://192.168.0.219:8091
 MAXKB_API_KEY=<PREFLIGHT_API_KEY>
 MAXKB_DEFAULT_KNOWLEDGE_ID=019f787c-644e-7162-bfe5-f4ee02a91539
 MAXKB_TIMEOUT_MS=5000
 ```
 
-本地局域网联调时，`192.168.0.235` 是 MaxKB/OCR Worker 所在电脑，`8091` 是 OCR Worker 代理端口。前置项目电脑为
+本地局域网联调时，`192.168.0.219` 是 MaxKB/OCR Worker 所在电脑，`8091` 是 OCR Worker 代理端口。前置项目电脑为
 `192.168.0.219` 时不能把 `MAXKB_BASE_URL` 写成 `http://127.0.0.1:8091`，否则会指向前置项目自己的电脑。
 
 当前 MaxKB 部署只有管理员账号密码，没有独立 provider API key。本项目已在 OCR Worker 侧补充 MaxKB provider proxy：

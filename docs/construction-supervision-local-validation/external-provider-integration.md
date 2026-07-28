@@ -57,13 +57,13 @@ MaxKB 默认也是可选 provider。当前前置平台联调推荐显式选择 M
 ```env
 KNOWLEDGE_PROVIDER=maxkb
 MAXKB_ENABLED=true
-MAXKB_BASE_URL=http://192.168.0.235:8091
+MAXKB_BASE_URL=http://192.168.0.219:8091
 MAXKB_API_KEY=<PREFLIGHT_API_KEY>
 MAXKB_DEFAULT_KNOWLEDGE_ID=019f787c-644e-7162-bfe5-f4ee02a91539
 MAXKB_TIMEOUT_MS=5000
 ```
 
-本地局域网联调时，前置平台电脑 `192.168.0.219` 应访问 MaxKB/OCR Worker 电脑 `192.168.0.235` 暴露的
+本地局域网联调时，前置平台电脑 `192.168.0.219` 应访问 MaxKB/OCR Worker 电脑 `192.168.0.219` 暴露的
 Worker proxy。`MAXKB_API_KEY` 使用 Worker 的 `PREFLIGHT_API_KEY`，不要把 MaxKB 管理员账号密码交给前置项目。
 
 如果 MaxKB 部署 API 路径与默认值不同，可以显式覆盖：

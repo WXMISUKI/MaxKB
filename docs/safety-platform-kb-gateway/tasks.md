@@ -58,12 +58,35 @@
 - 本轮实现：H1-H6 已完成，网关上传契约已具备真实平台联调所需的归属字段和内容哈希
 - 本轮验证：`pytest` 15 项通过，Ruff 通过，`git diff --check` 通过
 
+## 本轮归档记录（2026-07-28）
+
+- 规格归档：`specs/multi-project-isolation/spec.md`
+- 文档同步：runbook/design 补充 workspace 隔离、命名前缀与删除保护阀口径
+- 运维补充：runbook 补充开源版 workspace 根文件夹初始化命令与 embedding 模型 id 查询方式
+- 实现变更：新增 `MAXKB_TEAM_KB_PREFIX` 与 `REQUIRE_KNOWLEDGE_BASE_ID_FOR_DELETE` 配置；队伍知识库命名统一走可配置前缀
+- 验证结果：`pytest` 16 项通过
+
+## 本轮归档记录（2026-07-28-2）
+
+- 联调现状：`8092` 网关已在宿主机以 `python -m uvicorn` 方式跑通，不属于 Docker 容器
+- 本地口径：当前 MaxKB 运行态仅开放 `default` workspace，因此本地联调采用 `default + safety-team` 前缀隔离
+- 交付补充：新增后端可直接复制的 `.env` 示例与后端联调清单
+- quickstart：补充 `8092` 启动说明、宿主机运行说明和后端交付文档入口
+
 ## Task Group F - Phase 2 合同增强
 
-- [ ] F1 支持显式 `knowledgeBaseId` 绑定上传
-- [ ] F2 支持显式 `knowledgeBaseId` 绑定检索
-- [ ] F3 支持显式 `knowledgeBaseId` 绑定队伍知识库查询与删除
+- [x] F1 支持显式 `knowledgeBaseId` 绑定上传
+- [x] F2 支持显式 `knowledgeBaseId` 绑定检索
+- [x] F3 支持显式 `knowledgeBaseId` 绑定队伍知识库查询与删除
 - [ ] F4 让平台后端可在 `teamId` 和 `knowledgeBaseId` 之间逐步切换
+
+## Task Group I - 多项目隔离（Workspace）
+
+- [x] I1 规格：明确同一 MaxKB 实例多项目共存的隔离策略（workspace + 可选前缀）
+- [x] I2 文档：补本地联调与线上部署的 workspace 配置口径
+- [x] I3 实现：支持队伍知识库命名前缀配置，避免误绑定
+- [x] I4 实现：提供删除保护阀，线上可要求必须显式传 `knowledgeBaseId`
+- [x] I5 验证：补充前缀与删除保护阀的测试覆盖
 
 ## Task Group G - ZHGDX 数据映射与同步边界
 

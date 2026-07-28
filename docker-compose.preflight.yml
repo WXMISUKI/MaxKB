@@ -1,0 +1,46 @@
+# Local MaxKB + preflight OCR Worker stack for LAN integration.
+# Start:
+#   docker compose -f docker-compose.preflight.yml --env-file .env.docker.local up -d --build
+# Secrets live in .env.docker.local (gitignored). Use .env.docker.local.example as template.
+
+services:
+  maxkb:
+    image: registry.fit2cloud.com/maxkb/maxkb
+    container_name: maxkb
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - C:/maxkb:/opt/maxkb
+
+  preflight-ocr-worker:
+    build:
+      context: .
+      dockerfile: services/preflight-ocr-worker/Dockerfile
+    image: maxkb-preflight-ocr-worker:local
+    container_name: preflight-ocr-worker
+    restart: always
+    depends_on:
+      - maxkb
+    ports:
+      - "8091:8091"
+    env_file:
+      - .env.docker.local
+    environment:
+      PREFLIGHT_PROJECT_ROOT: /app
+      PREFLIGHT_STATE_FILE: /var/preflight-ocr-worker/state.json
+      PREFLIGHT_ALLOWED_SOURCE_ROOTS: /data/sources
+      MAXKB_BASE_URL: http://maxkb:8080/admin/api
+      MAXKB_USERNAME: ${MAXKB_USERNAME:-admin}
+      MAXKB_WORKSPACE_ID: ${MAXKB_WORKSPACE_ID:-default}
+      MAXKB_DEFAULT_KNOWLEDGE_ID: ${MAXKB_DEFAULT_KNOWLEDGE_ID:-}
+      PADDLEOCR_JOB_URL: ${PADDLEOCR_JOB_URL:-https://paddleocr.aistudio-app.com/api/v2/ocr/jobs}
+      PADDLEOCR_MODEL: ${PADDLEOCR_MODEL:-PaddleOCR-VL-1.6}
+    volumes:
+      - C:/maxkb-data/sources:/data/sources:ro
+      - preflight-worker-state:/var/preflight-ocr-worker
+      - preflight-ocr-artifacts:/app/docs/simulated-pilot-dataset
+
+volumes:
+  preflight-worker-state:
+  preflight-ocr-artifacts:
