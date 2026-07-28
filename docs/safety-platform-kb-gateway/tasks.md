@@ -87,3 +87,13 @@
 - [x] H6 增加归属校验失败时的临时文件清理
 - [ ] H7 由安全监管平台持久化幂等键、版本状态和 provider refs
 - [ ] H8 对真实 `biz_project_person_certificate` 资料执行端到端联调
+
+## Task Group I - 平台后端 AI 对接说明
+
+- [x] I1 编写后端 AI 可直接执行的网关对接说明
+- [x] I2 固化 ZHGDX 表到 `teamId`、`sourceTable`、`sourceObjectId` 的映射
+- [x] I3 固化新增、更新、删除和项目共享资料流程
+- [x] I4 固化错误码、重试和幂等建议
+- [x] I5 固化平台后端与网关的职责边界
+- [ ] I6 由安全监管平台后端 AI 按说明实现调用方
+- [ ] I7 使用真实人员证书或队伍合同完成端到端联调
