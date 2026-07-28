@@ -282,3 +282,7 @@
 - 项目共享依据使用 `scope=project_shared` 投影到队伍库。
 - 无法可靠归属队伍的项目级审查数据不得直接进入队伍库。
 - 网关接收平台后端解析后的文件内容，不直连 `zhgdx`。
+
+后端完整接入流程和可交给后端 AI 执行的规范见：
+
+`platform-backend-integration-guide.md`
